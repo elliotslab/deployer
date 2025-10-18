@@ -2,12 +2,6 @@
 /*
 ## Installing
 
-Require discord recipe in your `deploy.php` file:
-
-```php
-require 'contrib/discord.php';
-```
-
 Add hook on deploy:
 
 ```php
@@ -21,15 +15,15 @@ before('deploy', 'discord:notify');
 
 - `discord_notify_text` – notification message template, markdown supported, default:
   ```markdown
-  :information_source: **{{user}}** is deploying branch `{{branch}}` to _{{target}}_
+  :information_source: **{{user}}** is deploying branch `{{branch}}` to _{{where}}_
   ```
 - `discord_success_text` – success template, default:
   ```markdown
-  :white_check_mark: Branch `{{branch}}` deployed to _{{target}}_ successfully
+  :white_check_mark: Branch `{{branch}}` deployed to _{{where}}_ successfully
   ```
 - `discord_failure_text` – failure template, default:
   ```markdown
-  :no_entry_sign: Branch `{{branch}}` has failed to deploy to _{{target}}_
+  :no_entry_sign: Branch `{{branch}}` has failed to deploy to _{{where}}_
 
 ## Usage
 
@@ -51,6 +45,7 @@ If you want to notify about failed deployment add this too:
 after('deploy:failed', 'discord:notify:failure');
 ```
  */
+
 namespace Deployer;
 
 use Deployer\Task\Context;
@@ -61,19 +56,19 @@ set('discord_webhook', function () {
 });
 
 // Deploy messages
-set('discord_notify_text', function() {
+set('discord_notify_text', function () {
     return [
-        'text' => parse(':information_source: **{{user}}** is deploying branch `{{branch}}` to _{{target}}_'),
+        'text' => parse(':information_source: **{{user}}** is deploying branch `{{what}}` to _{{where}}_'),
     ];
 });
-set('discord_success_text', function() {
+set('discord_success_text', function () {
     return [
-        'text' => parse(':white_check_mark: Branch `{{branch}}` deployed to _{{target}}_ successfully'),
+        'text' => parse(':white_check_mark: Branch `{{what}}` deployed to _{{where}}_ successfully'),
     ];
 });
-set('discord_failure_text', function() {
+set('discord_failure_text', function () {
     return [
-        'text' => parse(':no_entry_sign: Branch `{{branch}}` has failed to deploy to _{{target}}_'),
+        'text' => parse(':no_entry_sign: Branch `{{what}}` has failed to deploy to _{{where}}_'),
     ];
 });
 
@@ -81,14 +76,14 @@ set('discord_failure_text', function() {
 set('discord_message', 'discord_notify_text');
 
 // Helpers
-task('discord_send_message', function(){
+task('discord_send_message', function () {
     $message = get(get('discord_message'));
 
-    Httpie::post(get('discord_webhook'))->body($message)->send();
+    Httpie::post(get('discord_webhook'))->jsonBody($message)->send();
 });
 
 // Tasks
-desc('Just notify your Discord channel with all messages, without deploying');
+desc('Tests messages');
 task('discord:test', function () {
     set('discord_message', 'discord_notify_text');
     invoke('discord_send_message');
@@ -97,32 +92,28 @@ task('discord:test', function () {
     set('discord_message', 'discord_failure_text');
     invoke('discord_send_message');
 })
-    ->once()
-    ->shallow();
+    ->once();
 
-desc('Notify Discord');
+desc('Notifies Discord');
 task('discord:notify', function () {
     set('discord_message', 'discord_notify_text');
     invoke('discord_send_message');
 })
     ->once()
-    ->shallow()
     ->isHidden();
 
-desc('Notify Discord about deploy finish');
+desc('Notifies Discord about deploy finish');
 task('discord:notify:success', function () {
     set('discord_message', 'discord_success_text');
     invoke('discord_send_message');
 })
     ->once()
-    ->shallow()
     ->isHidden();
 
-desc('Notify Discord about deploy failure');
+desc('Notifies Discord about deploy failure');
 task('discord:notify:failure', function () {
     set('discord_message', 'discord_failure_text');
     invoke('discord_send_message');
 })
     ->once()
-    ->shallow()
     ->isHidden();

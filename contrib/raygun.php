@@ -1,12 +1,5 @@
 <?php
 /*
-## Installing
-
-Add to your _deploy.php_
-
-```php
-require 'contrib/raygun.php';
-```
 
 ## Configuration
 
@@ -26,11 +19,12 @@ To notify Raygun of a successful deployment, you can use the 'raygun:notify' tas
 after('deploy', 'raygun:notify');
 ```
  */
+
 namespace Deployer;
 
 use Deployer\Utility\Httpie;
 
-desc('Notifying Raygun of deployment');
+desc('Notifies Raygun of deployment');
 task('raygun:notify', function () {
     $data = [
         'apiKey'       => get('raygun_api_key'),
@@ -39,10 +33,10 @@ task('raygun:notify', function () {
         'emailAddress' => get('raygun_email'),
         'comment' => get('raygun_comment'),
         'scmIdentifier' => get('raygun_scm_identifier'),
-        'scmType' => get('raygun_scm_type')
+        'scmType' => get('raygun_scm_type'),
     ];
 
     Httpie::post('https://app.raygun.io/deployments')
-        ->body($data)
+        ->jsonBody($data)
         ->send();
 });

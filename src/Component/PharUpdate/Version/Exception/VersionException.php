@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Deployer\Component\PharUpdate\Version\Exception;
 
 use Exception;
@@ -8,6 +11,4 @@ use Exception;
  *
  * @author Kevin Herrera <kevin@herrera.io>
  */
-class VersionException extends Exception
-{
-}
+class VersionException extends Exception {}

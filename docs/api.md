@@ -4,70 +4,38 @@
 
 # API Reference
 
- * [`host()`](#host)
- * [`localhost()`](#localhost)
- * [`getHost()`](#getHost)
- * [`currentHost()`](#currentHost)
- * [`select()`](#select)
- * [`import()`](#import)
- * [`desc()`](#desc)
- * [`task()`](#task)
- * [`before()`](#before)
- * [`after()`](#after)
- * [`fail()`](#fail)
- * [`option()`](#option)
- * [`cd()`](#cd)
- * [`within()`](#within)
- * [`run()`](#run)
- * [`runLocally()`](#runLocally)
- * [`test()`](#test)
- * [`testLocally()`](#testLocally)
- * [`on()`](#on)
- * [`invoke()`](#invoke)
- * [`upload()`](#upload)
- * [`download()`](#download)
- * [`info()`](#info)
- * [`warning()`](#warning)
- * [`writeln()`](#writeln)
- * [`parse()`](#parse)
- * [`set()`](#set)
- * [`add()`](#add)
- * [`get()`](#get)
- * [`has()`](#has)
- * [`ask()`](#ask)
- * [`askChoice()`](#askChoice)
- * [`askConfirmation()`](#askConfirmation)
- * [`askHiddenResponse()`](#askHiddenResponse)
- * [`input()`](#input)
- * [`output()`](#output)
- * [`commandExist()`](#commandExist)
- * [`commandSupportsOption()`](#commandSupportsOption)
- * [`locateBinaryPath()`](#locateBinaryPath)
-
 ## host()
 
 ```php
-host(string ...$hostname)
+host(string ...$hostname): Host|ObjectProxy
 ```
 
+Defines a host or hosts.
+```php
+host('example.org');
+host('prod.example.org', 'staging.example.org');
+```
+
+Inside task can be used to get `Host` instance of an alias.
+```php
+task('test', function () {
+    $port = host('example.org')->get('port');
+});
+```
 
 
 ## localhost()
 
 ```php
-localhost(string ...$hostnames)
+localhost(string ...$hostnames): Localhost|ObjectProxy
 ```
 
-
-
-## getHost()
+Define a local host.
+Deployer will not connect to this host, but will execute commands locally instead.
 
 ```php
-getHost(string $alias): Host
+localhost('ci'); // Alias and hostname will be "ci".
 ```
-
-Get host by host alias.
-
 
 
 ## currentHost()
@@ -79,7 +47,6 @@ currentHost(): Host
 Returns current host.
 
 
-
 ## select()
 
 ```php
@@ -89,10 +56,20 @@ select(string $selector): array
 Returns hosts based on provided selector.
 
 ```php
-on(select('stage=prod, role=db'), function ($host) {
+on(select('stage=prod, role=db'), function (Host $host) {
     ...
 });
 ```
+
+
+
+## selectedHosts()
+
+```php
+selectedHosts(): array
+```
+
+Returns array of hosts selected by user via CLI.
 
 
 
@@ -113,7 +90,6 @@ import(__DIR__ . '/config/hosts.yaml');
 ```
 
 
-
 ## desc()
 
 ```php
@@ -126,7 +102,7 @@ Set task description.
 ## task()
 
 ```php
-task(string $name, $body = null): Task
+task(string $name, callable|array|null $body = null): Task
 ```
 
 Define a new task and save to tasks list.
@@ -134,60 +110,48 @@ Define a new task and save to tasks list.
 Alternatively get a defined task.
 
 
-### Arguments:
-- ### name
-  **type**: `string `
 
-  Name of current task.
-- ### body
-  **type**: `callable|array|null `
-
-  Callable task, array of other tasks names or nothing to get a defined tasks
+| Argument | Type | Comment |
+|---|---|---|
+| `$name` | `string` | Name of current task. |
+| `$body` | `callable` or `array` or `null` | Callable task, array of other tasks names or nothing to get a defined tasks |
 
 ## before()
 
 ```php
-before(string $task, $do)
+before(string $task, string|callable $do): ?Task
 ```
 
 Call that task before specified task runs.
 
 
 
-### Arguments:
-- ### task
-  **type**: `string `
 
-  The task before $that should be run.
-- ### do
-  **type**: `string|callable `
-
-  The task to be run.
+| Argument | Type | Comment |
+|---|---|---|
+| `$task` | `string` | The task before $that should be run. |
+| `$do` | `string` or `callable` | The task to be run. |
 
 ## after()
 
 ```php
-after(string $task, $do)
+after(string $task, string|callable $do): ?Task
 ```
 
 Call that task after specified task runs.
 
 
 
-### Arguments:
-- ### task
-  **type**: `string `
 
-  The task after $that should be run.
-- ### do
-  **type**: `string|callable `
-
-  The task to be run.
+| Argument | Type | Comment |
+|---|---|---|
+| `$task` | `string` | The task after $that should be run. |
+| `$do` | `string` or `callable` | The task to be run. |
 
 ## fail()
 
 ```php
-fail(string $task, $do)
+fail(string $task, string|callable $do): ?Task
 ```
 
 Setup which task run on failure of $task.
@@ -195,15 +159,11 @@ When called multiple times for a task, previous fail() definitions will be overr
 
 
 
-### Arguments:
-- ### task
-  **type**: `string `
 
-  The task which need to fail so $that should be run.
-- ### do
-  **type**: `string|callable `
-
-  The task to be run.
+| Argument | Type | Comment |
+|---|---|---|
+| `$task` | `string` | The task which need to fail so $that should be run. |
+| `$do` | `string` or `callable` | The task to be run. |
 
 ## option()
 
@@ -214,27 +174,14 @@ option(string $name, $shortcut = null, ?int $mode = null, string $description = 
 Add users options.
 
 
-### Arguments:
-- ### name
-  **type**: `string `
 
-  The option name
-- ### shortcut
-  **type**: `string|array|null `
-
-  The shortcuts, can be null, a string of shortcuts delimited by | or an array of shortcuts
-- ### mode
-  **type**: `int|null `
-
-  The option mode: One of the VALUE_* constants
-- ### description
-  **type**: `string `
-
-  A description text
-- ### default
-  **type**: `string|string[]|int|bool|null `
-
-  The default value (must be null for self::VALUE_NONE)
+| Argument | Type | Comment |
+|---|---|---|
+| `$name` | `string` | The option name |
+| `$shortcut` | `string` or `array` or `null` | The shortcuts, can be null, a string of shortcuts delimited by | or an array of shortcuts |
+| `$mode` | `int` or `null` | The option mode: One of the VALUE_* constants |
+| `$description` | `string` | A description text |
+| `$default` | `string` or `string[]` or `int` or `bool` or `null` | The default value (must be null for self::VALUE_NONE) |
 
 ## cd()
 
@@ -244,11 +191,35 @@ cd(string $path): void
 
 Change the current working directory.
 
+```php
+cd('~/myapp');
+run('ls'); // Will run `ls` in ~/myapp.
+```
+
+
+## become()
+
+```php
+become(string $user): \Closure
+```
+
+Change the current user.
+
+Usage:
+```php
+$restore = become('deployer');
+
+// do something
+
+$restore(); // revert back to the previous user
+```
+
+
 
 ## within()
 
 ```php
-within(string $path, callable $callback)
+within(string $path, callable $callback): mixed
 ```
 
 Execute a callback within a specific directory and revert back to the initial working directory.
@@ -258,7 +229,17 @@ Execute a callback within a specific directory and revert back to the initial wo
 ## run()
 
 ```php
-run(string $command, ?array $options = [], ?int $timeout = null, ?int $idle_timeout = null, ?string $secret = null, ?array $vars = null, ?array $env = null, ?bool $real_time_output = false): string
+run(
+    string  $command,
+    ?string $cwd = null,
+    ?array  $env = null,
+    #[\SensitiveParameter]
+    ?string $secret = null,
+    ?bool   $nothrow = false,
+    ?bool   $forceOutput = false,
+    ?int    $timeout = null,
+    ?int    $idleTimeout = null,
+): string 
 ```
 
 Executes given command on remote host.
@@ -279,44 +260,32 @@ run("echo $path");
 
 
 
-### Arguments:
-- ### command
-  **type**: `string `
-
-  Command to run on remote host.
-- ### options
-  **type**: `array|null `
-
-  Array of options will override passed named arguments.
-- ### timeout
-  **type**: `int|null `
-
-  Sets the process timeout (max. runtime). The timeout in seconds (default: 300 sec; see {{default_timeout}}, `null` to disable).
-- ### idle_timeout
-  **type**: `int|null `
-
-  Sets the process idle timeout (max. time since last output) in seconds.
-- ### secret
-  **type**: `string|null `
-
-  Placeholder `%secret%` can be used in command. Placeholder will be replaced with this value and will not appear in any logs.
-- ### vars
-  **type**: `array|null `
-
-  Array of placeholders to replace in command: `run('echo %key%', vars: ['key' => 'anything does here']);`
-- ### env
-  **type**: `array|null `
-
-  Array of environment variables: `run('echo $KEY', env: ['key' => 'value']);`
-- ### real_time_output
-  **type**: `bool|null `
-
-  Print command output in real-time.
+| Argument | Type | Comment |
+|---|---|---|
+| `$command` | `string` | Command to run on remote host. |
+| `$cwd` | `string` or `null` | Sets the process working directory. If not set {{working_path}} will be used. |
+| `$timeout` | `int` or `null` | Sets the process timeout (max. runtime). The timeout in seconds (default: 300 sec; see {{default_timeout}}, `null` to disable). |
+| `$idleTimeout` | `int` or `null` | Sets the process idle timeout (max. time since last output) in seconds. |
+| `$secret` | `string` or `null` | Placeholder `%secret%` can be used in command. Placeholder will be replaced with this value and will not appear in any logs. |
+| `$env` | `array` or `null` | Array of environment variables: `run('echo $KEY', env: ['key' => 'value']);` |
+| `$forceOutput` | `bool` or `null` | Print command output in real-time. |
+| `$nothrow` | `bool` or `null` | Don't throw an exception of non-zero exit code. |
 
 ## runLocally()
 
 ```php
-runLocally(string $command, ?array $options = [], ?int $timeout = null, ?int $idle_timeout = null, ?string $secret = null, ?array $vars = null, ?array $env = null): string
+runLocally(
+    string  $command,
+    ?string $cwd = null,
+    ?int    $timeout = null,
+    ?int    $idleTimeout = null,
+    #[\SensitiveParameter]
+    ?string $secret = null,
+    ?array  $env = null,
+    ?bool   $forceOutput = false,
+    ?bool   $nothrow = false,
+    ?string $shell = null,
+): string 
 ```
 
 Execute commands on a local machine.
@@ -330,35 +299,18 @@ runLocally("echo $user");
 
 
 
-### Arguments:
-- ### command
-  **type**: `string `
 
-  Command to run on localhost.
-- ### options
-  **type**: `array|null `
-
-  Array of options will override passed named arguments.
-- ### timeout
-  **type**: `int|null `
-
-  Sets the process timeout (max. runtime). The timeout in seconds (default: 300 sec, `null` to disable).
-- ### idle_timeout
-  **type**: `int|null `
-
-  Sets the process idle timeout (max. time since last output) in seconds.
-- ### secret
-  **type**: `string|null `
-
-  Placeholder `%secret%` can be used in command. Placeholder will be replaced with this value and will not appear in any logs.
-- ### vars
-  **type**: `array|null `
-
-  Array of placeholders to replace in command: `runLocally('echo %key%', vars: ['key' => 'anything does here']);`
-- ### env
-  **type**: `array|null `
-
-  Array of environment variables: `runLocally('echo $KEY', env: ['key' => 'value']);`
+| Argument | Type | Comment |
+|---|---|---|
+| `$command` | `string` | Command to run on localhost. |
+| `$cwd` | `string` or `null` | Sets the process working directory. If not set {{working_path}} will be used. |
+| `$timeout` | `int` or `null` | Sets the process timeout (max. runtime). The timeout in seconds (default: 300 sec, `null` to disable). |
+| `$idleTimeout` | `int` or `null` | Sets the process idle timeout (max. time since last output) in seconds. |
+| `$secret` | `string` or `null` | Placeholder `%secret%` can be used in command. Placeholder will be replaced with this value and will not appear in any logs. |
+| `$env` | `array` or `null` | Array of environment variables: `runLocally('echo $KEY', env: ['key' => 'value']);` |
+| `$forceOutput` | `bool` or `null` | Print command output in real-time. |
+| `$nothrow` | `bool` or `null` | Don't throw an exception of non-zero exit code. |
+| `$shell` | `string` or `null` | Shell to run in. Default is `bash -s`. |
 
 ## test()
 
@@ -405,7 +357,7 @@ on(select('stage=prod, role=db'), function ($host) {
 ```
 
 ```php
-on(getHost('prod'), function ($host) {
+on(host('example.org'), function ($host) {
     ...
 });
 ```
@@ -437,11 +389,10 @@ invoke('deploy:symlink');
 upload($source, string $destination, array $config = []): void
 ```
 
-Upload file or directory to host.
+Upload files or directories to host.
 
-> You may have noticed that there is a trailing slash (/) at the end of the first argument in the above command, this is necessary to mean “the contents of build“.
->
-> The alternative, without the trailing slash, would place build, including the directory, within public. This would create a hierarchy that looks like: {{release_path}}/public/build
+> To upload the _contents_ of a directory, include a trailing slash (eg `upload('build/', '{{release_path}}/public');`).
+> Without the trailing slash, the build directory itself will be uploaded (resulting in `{{release_path}}/public/build`).
 
  The `$config` array supports the following keys:
 
@@ -449,7 +400,11 @@ Upload file or directory to host.
 - `options` with additional flags passed directly to the `rsync` command
 - `timeout` for `Process::fromShellCommandline()` (`null` by default)
 - `progress_bar` to display upload/download progress
-- `display_stats' to display rsync set of statistics
+- `display_stats` to display rsync set of statistics
+
+Note: due to the way php escapes command line arguments, list-notation for the rsync `--exclude={'file','anotherfile'}` option will not work.
+A workaround is to add a separate `--exclude=file` argument for each exclude to `options` (also, _do not_ wrap the filename/filter in quotes).
+An alternative might be to write the excludes to a temporary file (one per line) and use `--exclude-from=temporary_file` argument instead.
 
 
 
@@ -486,7 +441,7 @@ Writes an warning message.
 ## writeln()
 
 ```php
-writeln($message, int $options = 0): void
+writeln(string $message, int $options = 0): void
 ```
 
 Writes a message to the output and adds a newline at the end.
@@ -508,7 +463,6 @@ set(string $name, $value): void
 ```
 
 Setup configuration option.
-
 
 
 ## add()
@@ -552,9 +506,8 @@ ask(string $message, ?string $default = null, ?array $autocomplete = null): ?str
 ## askChoice()
 
 ```php
-askChoice(string $message, array $availableChoices, ?string $default = null, bool $multiselect = false)
+askChoice(string $message, array $availableChoices, $default = null, bool $multiselect = false)
 ```
-
 
 
 
@@ -608,11 +561,55 @@ commandSupportsOption(string $command, string $option): bool
 
 
 
-## locateBinaryPath()
+## which()
 
 ```php
-locateBinaryPath(string $name): string
+which(string $name): string
 ```
 
+
+
+## remoteEnv()
+
+```php
+remoteEnv(): array
+```
+
+Returns remote environments variables as an array.
+```php
+$remotePath = remoteEnv()['PATH'];
+run('echo $PATH', env: ['PATH' => "/home/user/bin:$remotePath"]);
+```
+
+
+## error()
+
+```php
+error(string $message): Exception
+```
+
+Creates a new exception.
+
+
+## timestamp()
+
+```php
+timestamp(): string
+```
+
+Returns current timestamp in UTC timezone in ISO8601 format.
+
+
+## fetch()
+
+```php
+fetch(string $url, string $method = 'get', array $headers = [], ?string $body = null, ?array &$info = null, bool $nothrow = false): string
+```
+
+Example usage:
+```php
+$result = fetch('{{domain}}', info: $info);
+var_dump($info['http_code'], $result);
+```
 
 

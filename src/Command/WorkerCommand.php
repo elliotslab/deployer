@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /* (c) Anton Medvedev <anton@medv.io>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -13,6 +16,7 @@ use Deployer\Host\Localhost;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption as Option;
 use Symfony\Component\Console\Output\OutputInterface;
+
 use function Deployer\localhost;
 
 class WorkerCommand extends MainCommand
@@ -37,30 +41,21 @@ class WorkerCommand extends MainCommand
         $this->deployer->input = $input;
         $this->deployer->output = $output;
         $this->deployer['log'] = $input->getOption('log');
-
         $output->setDecorated($input->getOption('decorated'));
         if (!$output->isDecorated() && !defined('NO_ANSI')) {
             define('NO_ANSI', 'true');
         }
 
-        $this->deployer->config->set('master_url', 'http://localhost:' . $input->getOption('port'));
+        define('MASTER_ENDPOINT', 'http://localhost:' . $input->getOption('port'));
 
         $task = $this->deployer->tasks->get($input->getOption('task'));
-
-        $hostName = $input->getOption('host');
-        if ($hostName === Localhost::extraordinary) {
-            $host = localhost(Localhost::extraordinary);
-        } else {
-            $host = $this->deployer->hosts->get($input->getOption('host'));
-            $host->config()->load();
-        }
+        $host = $this->deployer->hosts->get($input->getOption('host'));
+        $host->config()->load();
 
         $worker = new Worker($this->deployer);
         $exitCode = $worker->execute($task, $host);
 
-        if ($hostName !== Localhost::extraordinary) {
-            $host->config()->save();
-        }
+        $host->config()->save();
         return $exitCode;
     }
 }

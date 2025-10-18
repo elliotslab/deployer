@@ -2,45 +2,100 @@
 <!-- Instead edit recipe/yii.php -->
 <!-- Then run bin/docgen -->
 
-# yii
+# How to Deploy a Yii2 Project
+
+```php
+require 'recipe/yii.php';
+```
 
 [Source](/recipe/yii.php)
 
+Deployer is a free and open source deployment tool written in PHP. 
+It helps you to deploy your Yii2 application to a server. 
+It is very easy to use and has a lot of features. 
+
+Three main features of Deployer are:
+- **Provisioning** - provision your server for you.
+- **Zero downtime deployment** - deploy your application without a downtime.
+- **Rollbacks** - rollback your application to a previous version, if something goes wrong.
+
+Additionally, Deployer has a lot of other features, like:
+- **Easy to use** - Deployer is very easy to use. It has a simple and intuitive syntax.
+- **Fast** - Deployer is very fast. It uses parallel connections to deploy your application.
+- **Secure** - Deployer uses SSH to connect to your server.
+- **Supports all major PHP frameworks** - Deployer supports all major PHP frameworks.
+
+You can read more about Deployer in [Getting Started](/docs/getting-started.md).
+
+The [deploy](#deploy) task of **Yii2** consists of:
+* [deploy:prepare](/docs/recipe/common.md#deploy-prepare) – Prepares a new release
+  * [deploy:info](/docs/recipe/deploy/info.md#deploy-info) – Displays info about deployment
+  * [deploy:setup](/docs/recipe/deploy/setup.md#deploy-setup) – Prepares host for deploy
+  * [deploy:lock](/docs/recipe/deploy/lock.md#deploy-lock) – Locks deploy
+  * [deploy:release](/docs/recipe/deploy/release.md#deploy-release) – Prepares release
+  * [deploy:update_code](/docs/recipe/deploy/update_code.md#deploy-update_code) – Updates code
+  * [deploy:env](/docs/recipe/deploy/env.md#deploy-env) – Configure .env file
+  * [deploy:shared](/docs/recipe/deploy/shared.md#deploy-shared) – Creates symlinks for shared files and dirs
+  * [deploy:writable](/docs/recipe/deploy/writable.md#deploy-writable) – Makes writable dirs
+* [deploy:vendors](/docs/recipe/deploy/vendors.md#deploy-vendors) – Installs vendors
+* [deploy:migrate](/docs/recipe/yii.md#deploy-migrate) – Runs Yii2 migrations for your project
+* [deploy:publish](/docs/recipe/common.md#deploy-publish) – Publishes the release
+  * [deploy:symlink](/docs/recipe/deploy/symlink.md#deploy-symlink) – Creates symlink to release
+  * [deploy:unlock](/docs/recipe/deploy/lock.md#deploy-unlock) – Unlocks deploy
+  * [deploy:cleanup](/docs/recipe/deploy/cleanup.md#deploy-cleanup) – Cleanup old releases
+  * [deploy:success](/docs/recipe/common.md#deploy-success) – Deploys your project
 
 
-* Require
-  * [`recipe/common.php`](/docs/recipe/common.md)
-* Config
-  * [`shared_dirs`](#shared_dirs)
-  * [`writable_dirs`](#writable_dirs)
-* Tasks
-  * [`deploy`](#deploy) — Deploy your project
+The yii recipe is based on the [common](/docs/recipe/common.md) recipe.
 
-## Config
+## Configuration
 ### shared_dirs
-[Source](https://github.com/deployphp/deployer/search?q=%22shared_dirs%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Ayii.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/yii.php#L10)
 
-* Overrides [`shared_dirs`](/docs/recipe/common.md#shared_dirs) from `recipe/common.php`
+Overrides [shared_dirs](/docs/recipe/deploy/shared.md#shared_dirs) from `recipe/deploy/shared.php`.
 
 Yii shared dirs
 
-### writable_dirs
-[Source](https://github.com/deployphp/deployer/search?q=%22writable_dirs%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Ayii.php)
+```php title="Default value"
+['runtime']
+```
 
-* Overrides [`writable_dirs`](/docs/recipe/deploy/writable.md#writable_dirs) from `recipe/deploy/writable.php`
+
+### writable_dirs
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/yii.php#L13)
+
+Overrides [writable_dirs](/docs/recipe/deploy/writable.md#writable_dirs) from `recipe/deploy/writable.php`.
 
 Yii writable dirs
 
+```php title="Default value"
+['runtime']
+```
+
+
 
 ## Tasks
-### deploy
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Ayii.php)
+
+### deploy\:migrate {#deploy-migrate}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/yii.php#L16)
+
+Runs Yii2 migrations for your project.
+
+
+
+
+### deploy {#deploy}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/yii.php#L24)
+
+Deploys your project.
 
 Main task
 
+
 This task is group task which contains next tasks:
-* [`deploy:prepare`](/docs/recipe/common.md#deployprepare)
-* [`deploy:vendors`](/docs/recipe/deploy/vendors.md#deployvendors)
-* [`deploy:publish`](/docs/recipe/common.md#deploypublish)
+* [deploy:prepare](/docs/recipe/common.md#deploy-prepare)
+* [deploy:vendors](/docs/recipe/deploy/vendors.md#deploy-vendors)
+* [deploy:migrate](/docs/recipe/yii.md#deploy-migrate)
+* [deploy:publish](/docs/recipe/common.md#deploy-publish)
 
 

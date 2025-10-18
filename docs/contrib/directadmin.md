@@ -2,18 +2,15 @@
 <!-- Instead edit contrib/directadmin.php -->
 <!-- Then run bin/docgen -->
 
-# directadmin
-
-[Source](/contrib/directadmin.php)
-
-
-### Installing
-
-Add to your _deploy.php_
+# Directadmin Recipe
 
 ```php
 require 'contrib/directadmin.php';
 ```
+
+[Source](/contrib/directadmin.php)
+
+
 
 ### Configuration
 - `directadmin` – array with configuration for DirectAdmin
@@ -31,109 +28,55 @@ require 'contrib/directadmin.php';
     - `domain_php` – Enable PHP, options: ON/OFF, default: ON (optional when using directadmin:createdb)
     - `domain_php_version` – Domain PHP Version, default: 1 (required when using directadmin:php-version)
 
-### Usage
-
-A complete example with configs, staging and deployment
-
-```
-<?php
-namespace Deployer;
-
-require 'recipe/directadmin.php';
-
-Project name
-set('application', 'myproject.com');
-Project repository
-set('repository', 'git@github.com:myorg/myproject.com');
-
-DirectAdmin config
-set('directadmin', [
-    'host' => 'example.com',
-    'scheme' => 'https', // Optional
-    'port' => 2222, // Optional
-    'username' => 'admin',
-    'password' => 'Test1234' // It is recommended to use login keys!
-]);
-
-add('directadmin', [
-    'db_name' => 'website',
-    'db_user' => 'website',
-    'db_password' => 'Test1234',
-
-    'domain_name' => 'test.example.com'
-]);
-
-
-host('example.com')
-    ->stage('review')
-    ->user('admin')
-    ->set('deploy_path', '~/domains/test.example.com/repository')
-
-
-Tasks
-desc('Create directadmin domain and database');
-task('directadmin:prepare', [
-    'directadmin:createdomain',
-    'directadmin:symlink-private-html',
-    'directadmin:createdb',
-])->onStage('review');
-
-task('deploy', [
-    'deploy:info',
-    'directadmin:prepare',
-    'deploy:prepare',
-    'deploy:lock',
-    'deploy:release',
-    'deploy:update_code',
-    'deploy:shared',
-    'deploy:vendors',
-    'deploy:writable',
-    'deploy:symlink',
-    'deploy:unlock',
-    'cleanup',
-    'success'
-])->desc('Deploy your project');
-```
-
-
-
-* Tasks
-  * [`directadmin:createdb`](#directadmincreatedb) — Create a database on DirectAdmin
-  * [`directadmin:deletedb`](#directadmindeletedb) — Delete a database on DirectAdmin
-  * [`directadmin:createdomain`](#directadmincreatedomain) — Create a domain on DirectAdmin
-  * [`directadmin:deletedomain`](#directadmindeletedomain) — Delete a domain on DirectAdmin
-  * [`directadmin:symlink-private-html`](#directadminsymlink-private-html) — Symlink your private_html to public_html
-  * [`directadmin:php-version`](#directadminphp-version) — Change the PHP version from a domain
 
 
 ## Tasks
-### directadmin:createdb
-[Source](https://github.com/deployphp/deployer/search?q=%22directadmin%3Acreatedb%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adirectadmin.php)
+
+### directadmin\:createdb {#directadmin-createdb}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/directadmin.php#L76)
+
+Creates a database on DirectAdmin.
 
 
 
-### directadmin:deletedb
-[Source](https://github.com/deployphp/deployer/search?q=%22directadmin%3Adeletedb%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adirectadmin.php)
+
+### directadmin\:deletedb {#directadmin-deletedb}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/directadmin.php#L96)
+
+Deletes a database on DirectAdmin.
 
 
 
-### directadmin:createdomain
-[Source](https://github.com/deployphp/deployer/search?q=%22directadmin%3Acreatedomain%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adirectadmin.php)
+
+### directadmin\:createdomain {#directadmin-createdomain}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/directadmin.php#L111)
+
+Creates a domain on DirectAdmin.
 
 
 
-### directadmin:deletedomain
-[Source](https://github.com/deployphp/deployer/search?q=%22directadmin%3Adeletedomain%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adirectadmin.php)
+
+### directadmin\:deletedomain {#directadmin-deletedomain}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/directadmin.php#L129)
+
+Deletes a domain on DirectAdmin.
 
 
 
-### directadmin:symlink-private-html
-[Source](https://github.com/deployphp/deployer/search?q=%22directadmin%3Asymlink-private-html%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adirectadmin.php)
+
+### directadmin\:symlink-private-html {#directadmin-symlink-private-html}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/directadmin.php#L145)
+
+Symlink your private_html to public_html.
 
 
 
-### directadmin:php-version
-[Source](https://github.com/deployphp/deployer/search?q=%22directadmin%3Aphp-version%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adirectadmin.php)
+
+### directadmin\:php-version {#directadmin-php-version}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/directadmin.php#L161)
+
+Changes the PHP version from a domain.
+
 
 
 

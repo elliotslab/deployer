@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /* (c) Anton Medvedev <anton@medv.io>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -18,10 +21,7 @@ use Throwable;
 
 class Worker
 {
-    /**
-     * @var Deployer
-     */
-    private $deployer;
+    private Deployer $deployer;
 
     public function __construct(Deployer $deployer)
     {
@@ -33,8 +33,7 @@ class Worker
         try {
             Exception::setTaskSourceLocation($task->getSourceLocation());
 
-            $context = new Context($host, $this->deployer->input, $this->deployer->output);
-            $context->setIsLocal($task->isLocal());
+            $context = new Context($host);
             $task->run($context);
 
             if ($task->getName() !== 'connect') {

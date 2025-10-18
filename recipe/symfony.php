@@ -1,4 +1,5 @@
 <?php
+
 namespace Deployer;
 
 require_once __DIR__ . '/common.php';
@@ -13,18 +14,24 @@ set('symfony_version', function () {
 
 set('shared_dirs', [
     'var/log',
-    'var/sessions'
 ]);
 
 set('shared_files', [
-    '.env.local'
+    '.env.local',
 ]);
 
 set('writable_dirs', [
-    'var'
+    'var',
+    'var/cache',
+    'var/log',
+    'var/sessions',
 ]);
 
+set('log_files', 'var/log/*.log');
+
 set('migrations_config', '');
+
+set('doctrine_schema_validate_config', '');
 
 set('bin/console', '{{bin/php}} {{release_or_current_path}}/bin/console');
 
@@ -32,7 +39,7 @@ set('console_options', function () {
     return '--no-interaction';
 });
 
-desc('Migrate database');
+desc('Migrates database');
 task('database:migrate', function () {
     $options = '--allow-no-migration';
     if (get('migrations_config') !== '') {
@@ -42,21 +49,31 @@ task('database:migrate', function () {
     run("cd {{release_or_current_path}} && {{bin/console}} doctrine:migrations:migrate $options {{console_options}}");
 });
 
-desc('Clear cache');
+desc('Validate the Doctrine mapping files');
+task('doctrine:schema:validate', function () {
+    run("cd {{release_or_current_path}} && {{bin/console}} doctrine:schema:validate {{doctrine_schema_validate_config}} {{console_options}}");
+});
+
+desc('Clears cache');
 task('deploy:cache:clear', function () {
-    run('{{bin/console}} cache:clear {{console_options}} --no-warmup');
+    // composer install scripts usually clear and warmup symfony cache
+    // so we only need to do it if composer install was run with --no-scripts
+    if (false !== strpos(get('composer_options', ''), '--no-scripts')) {
+        run('{{bin/console}} cache:clear {{console_options}}');
+    }
 });
 
-desc('Warm up cache');
-task('deploy:cache:warmup', function () {
-    run('{{bin/console}} cache:warmup {{console_options}}');
+desc('Optimize environment variables');
+task('deploy:dump-env', function () {
+    within('{{release_or_current_path}}', function () {
+        run('{{bin/composer}} dump-env "${APP_ENV:-prod}"');
+    });
 });
 
-desc('Deploy project');
+desc('Deploys project');
 task('deploy', [
     'deploy:prepare',
     'deploy:vendors',
     'deploy:cache:clear',
-    'deploy:cache:warmup',
     'deploy:publish',
 ]);

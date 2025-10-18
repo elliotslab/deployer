@@ -1,265 +1,190 @@
 # Getting Started
 
-Deployer consists of two main parts: core task runner and recipes.
+This tutorial will guide you through:
 
-First, [install the Deployer](installation.md). 
+- Setting up a new host with the [provision](recipe/provision.md) recipe.
+- Configuring a deployment and performing your first deploy.
 
-Let's create our first recipe! Create a file named **deploy.php** and define our 
-first task and one host we are going to deploy to:
+## Step 1: Install Deployer {#install}
+
+First, [install Deployer](installation.md). Once installed, navigate to your project directory and run:
+
+```sh
+dep init
+```
+
+Deployer will prompt you with a series of questions. After completing them, you'll have a **deploy.php** or 
+**deploy.yaml** file—your deployment recipe. This file defines hosts, tasks, and dependencies on other recipes.
+Framework-specific recipes provided by Deployer are based on the [common](recipe/common.md) recipe.
+
+---
+
+## Step 2: Provision a New Server {#provision}
+
+:::note
+If you already have a configured web server, skip to [deployment](#deploy).
+:::
+
+### Setting Up Your VPS
+
+Create a new VPS with a provider like Linode, DigitalOcean, Vultr, AWS, or GCP. Use an **Ubuntu** image, as it's
+supported by Deployer's [provision](recipe/provision.md) recipe.
+
+:::tip
+Set up a DNS record pointing your domain to your server's IP address. This allows you to SSH into the server using your
+domain name instead of its IP.
+:::
+
+### Configuring `deploy.php`
+
+Your **deploy.php** recipe should define your host with key parameters:
+
+- **`remote_user`**: The SSH username.
+- **`deploy_path`**: The file path where your project will be deployed.
+
+Example:
 
 ```php
-<?php
-namespace Deployer;
-
-host('deployer.org');
-
-task('hello', function () {
-    run('ls -1');
-});
+host('example.org')
+    ->set('remote_user', 'deployer')
+    ->set('deploy_path', '~/example');
 ```
 
-> We are using namespace `Deployer` as we're going to primarily use functions
-> defined in this namespace. 
+If your server only has a `root` user, the `provision` recipe will create and configure a `deployer` user for you.
 
-Read more about [task's definitions](tasks.md).
+### Adding an Identity Key
 
-Now let's run our task:
-
-```bash
-$ dep hello
-task hello
-```
-
-What just happen? Deployer connected to **deployer.org** and executed `ls -1` 
-command. Let's count how many files ls command returned:
-
-```php
-task('hello', function () {
-    $output = run('ls -1');
-    $lines = substr_count($output, "\n");
-    writeln("Total files: $lines");
-});
-```
-
-```bash
-$ dep hello
-task hello
-[deployer.org] Total files: 4
-```
-
-Awesome! But let's debug our task and take a look what `ls -1` command actually 
-returned. We can place `writeln($output)` call in our task, but there is an 
-easier way: just add `-v` option:
-
-```bash
-$ dep hello -v
-task hello
-[deployer.org] run ls -1
-[deployer.org] dev
-[deployer.org] deployer.org
-[deployer.org] medv.io
-[deployer.org] numbr.dev
-[deployer.org] Total files: 4
-```
-
-Adding `-v` option instructs Deployer to print each commands it executes with 
-it's output. Looks like our task is executed in wrong directory. Let's cd to
-correct one:
-
-```diff
-task('hello', function () {
-+   cd('~/deployer.org');
-    $output = run('ls -1');
-    $lines = substr_count($output, "\n");
-    writeln("Total files: $lines");
-});
-```
-
-Tasks and hosts are two main concepts of Deployer. We define what to do in tasks
-and hosts define there to run it. Now let's add another host to run out task on:
-
-```php
-host('deployer.org');
-host('beta.deployer.org');
-```
-
-Read more about [host's definition](hosts.md).
-
-Now let's run `dep hello` again. This time Deployer will ask us what hosts do we 
-intend to run on. Let's run this command again this time with special selector 
-**all** which indicated what we're planning to run our task on all defined 
-hosts.
-
-```bash
-$ dep hello all
-task hello
-[deployer.org] Total files: 15
-[beta.deployer.org] error in deploy.php on line 8:
-[beta.deployer.org] run cd ~/deployer.org && (ls -1)
-[beta.deployer.org] err bash: line 1: cd: /home/deployer/deployer.org: 
-[beta.deployer.org] err bash: No such file or directory
-[beta.deployer.org] exit code 1 (General error)
-```
-
-That's right. There is no `~/deployer.org` dir on our beta host. To fix it we 
-need to cd in correct dir on each host. To do that, let's define config per 
-host.
-
-Each host has own configuration parameters. To access it inside task use 
-`get()`/`set()` functions. Also, each Deployer function can parse config 
-parameters via `{{...}}` syntax. 
-
-Read more about [host's configuration](config.md).
-
-```php
-host('deployer.org')
-    ->set('my_path', '~/deployer.org');
-host('beta.deployer.org')
-    ->set('my_path', '~/beta.deployer.org');
-```
-
-And let's use this config in our task:
-
-```diff
-task('hello', function () {
--   cd('~/deployer.org');
-+   cd(get('my_path'));
-    $output = run('ls -1');
-    $lines = substr_count($output, "\n");
-    writeln("Total files: $lines");
-});
-```
-
-Let's test it:
-
-```bash
-$ dep hello all
-task hello
-[deployer.org] Total files: 15
-[beta.deployer.org] Total files: 15
-```
-
-Success! This is a basics of Deployer. We can define hosts with config and 
-tasks. Using those we can create our own deployment recipes. 
-
-Deployer comes with a bunch of recipes for most popular frameworks. Let's use,
-for example, Laravel recipe to deploy our Laravel project. 
-
-```bash
-$ dep init
-```
-
-Follow instructions, choose one of types for your recipe: php or yaml. Read more 
-about writing [yaml recipes here](yaml.md). Let's choose php recipe for our 
-case.
-
-> You can mix php and yaml recipes. For example, you can add yaml recipe to your
-> php recipe via `import()` function, or import php recipes from yaml recipe.
-
-Let's take a look on generated **deploy.php** recipe. It requires Laravel 
-recipe:
-
-```php
-require 'recipe/laravel.php';
-```
-
-> In recipes, you can use `require` to import recipes defined in 
-> [recipes](https://github.com/deployphp/deployer/tree/master/recipe) and
-> [contrib](https://github.com/deployphp/deployer/tree/master/contrib) dirs. But
-> you can always require recipes by absolute path.
-
-Then there are three sections: config, hosts and tasks. All other tasks defined 
-in [Laravel](recipe/laravel.md) or in [common](recipe/common.md) recipes. To get 
-list of all possible tasks let's run `dep` without any arguments:
+To connect to your server, use an identity key or private key. Instead of defining it directly in your host
+configuration, add it to your **~/.ssh/config** file:
 
 ```
-$ dep
-Available commands:
-  deploy                     Deploy your project
-  init                       Initialize deployer in your project
-  rollback                   Rollback to previous release
-  run                        Run any arbitrary command on hosts
-  ssh                        Connect to host through ssh
-  status                     Show releases status
-  tree                       Display the task-tree for a given task
- artisan
-  artisan:cache:clear        Flush the application cache
-  ...
- deploy
-  deploy:update_code         Updates code
-  ...
+Host *
+  IdentityFile ~/.ssh/id_rsa
 ```
 
-Let's see what task defined in `deploy` task via `dep tree` command:
+### Provisioning the Server
 
-```
-$ dep tree deploy
-The task-tree for deploy:
-└── deploy
-    ├── deploy:prepare
-    │   ├── deploy:info
-    │   ├── deploy:setup
-    │   ├── deploy:lock
-    │   ├── deploy:release
-    │   ├── deploy:update_code
-    │   ├── deploy:shared
-    │   └── deploy:writable
-    ├── deploy:vendors
-    ├── artisan:storage:link
-    ├── artisan:view:cache
-    ├── artisan:config:cache
-    └── deploy:publish
-        ├── deploy:symlink
-        ├── deploy:unlock
-        ├── deploy:cleanup
-        └── deploy:success
+Run the following command to provision your server:
+
+```sh
+dep provision
 ```
 
-We can override `deploy` task if we want to in our recipe:
+:::tip
 
-```php
-task('deploy', [
-    'deploy:prepare',
-    'deploy:vendors',
-    'artisan:storage:link',
-    'artisan:view:cache',
-    'artisan:config:cache',
-    'deploy:publish',
-    'my_task',
-]);
+- To change the default `root` user, use:
+  ```sh
+  dep provision -o provision_user=your-user
+  ```
+- If your remote user can `sudo` to become root, use:
+  ```sh
+  dep provision -o become=root
+  ```
+
+:::
+
+During provisioning, Deployer will ask about PHP versions, database preferences, and more. It takes about **5 minutes**
+and installs everything required to run a website. The deployment path is configured
+as [deploy_path](recipe/common.md#deploy_path).
+
+---
+
+## Step 3: Deploy Your Project {#deploy}
+
+Deploy your project with:
+
+```sh
+dep deploy
 ```
 
-Or we can use hooks to add our own tasks:
+If the deployment fails, Deployer will display the error and the failed command. You may need to configure your `.env`
+file or similar credentials. To edit files directly on the server:
 
-```php
-after('deploy', 'my_task');
-```
-
-Let's try to connect to host via `dep` command:
-
-```bash
+```sh
 dep ssh
 ```
 
-If everything went well we now can deploy our application:
+If needed, resume deployment from the last step:
 
-```bash
-$ dep deploy
-[deploy.pw] info deploying HEAD
-task deploy:setup
-task deploy:lock
-task deploy:release
-task deploy:update_code
-task deploy:shared
-task deploy:writable
-task deploy:vendors
-task artisan:storage:link
-task artisan:view:cache
-task artisan:config:cache
-task deploy:symlink
-task deploy:unlock
-task deploy:cleanup
-[deploy.pw] info successfully deployed!
+```sh
+dep deploy --start-from deploy:migrate
 ```
 
+---
 
+## Step 4: Post-Deployment Configuration
+
+After the first successful deployment, the server directory structure looks like this:
+
+```
+~/example                      // deploy_path
+ |- current -> releases/1      // Symlink to current release
+ |- releases                   // Directory for all releases
+    |- 1                       // Latest release
+       |- ...
+       |- .env -> shared/.env  // Symlink to shared .env file
+ |- shared                     // Shared files between releases
+    |- ...
+    |- .env                    // Shared .env file
+ |- .dep                       // Deployer configuration files
+```
+
+### Web Server Setup
+
+Configure your web server to serve from the `current` directory. Example for Nginx:
+
+```nginx
+root /home/deployer/example/current/public;
+index index.php;
+location / {
+    try_files $uri $uri/ /index.php?$query_string;
+}
+```
+
+For those using the [provision recipe](recipe/provision.md), Deployer will automatically configure the Caddy web server
+to serve from the [public_path](recipe/provision/website.md#public_path).
+
+---
+
+## Step 5: Adding a Build Step
+
+To automate build steps, add a task in your **deploy.php**:
+
+```php
+task('build', function () {
+    cd('{{release_path}}');
+    run('npm install');
+    run('npm run prod');
+});
+
+after('deploy:update_code', 'build');
+```
+
+---
+
+## Examining Deployments
+
+Use the `releases` task to view deployment details:
+
+```sh
+dep releases
+```
+
+Example output:
+
+```
++---------------------+--------- deployer.org -------+--------+-----------+
+| Date (UTC)          | Release     | Author         | Target | Commit    |
++---------------------+-------------+----------------+--------+-----------+
+| 2021-11-05 14:00:22 | 1 (current) | Anton Medvedev | HEAD   | 943ded2be |
++---------------------+-------------+----------------+--------+-----------+
+```
+
+:::tip
+During development, the [dep push](recipe/deploy/push.md) task maybe useful
+to create a patch of local changes and push them to the host.
+:::
+
+--- 
+
+With Deployer, you're now ready to efficiently set up, provision, and manage deployments for your projects!

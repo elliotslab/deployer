@@ -2,33 +2,87 @@
 <!-- Instead edit recipe/sulu.php -->
 <!-- Then run bin/docgen -->
 
-# sulu
+# How to Deploy a Sulu Project
+
+```php
+require 'recipe/sulu.php';
+```
 
 [Source](/recipe/sulu.php)
 
+Deployer is a free and open source deployment tool written in PHP. 
+It helps you to deploy your Sulu application to a server. 
+It is very easy to use and has a lot of features. 
+
+Three main features of Deployer are:
+- **Provisioning** - provision your server for you.
+- **Zero downtime deployment** - deploy your application without a downtime.
+- **Rollbacks** - rollback your application to a previous version, if something goes wrong.
+
+Additionally, Deployer has a lot of other features, like:
+- **Easy to use** - Deployer is very easy to use. It has a simple and intuitive syntax.
+- **Fast** - Deployer is very fast. It uses parallel connections to deploy your application.
+- **Secure** - Deployer uses SSH to connect to your server.
+- **Supports all major PHP frameworks** - Deployer supports all major PHP frameworks.
+
+You can read more about Deployer in [Getting Started](/docs/getting-started.md).
+
+The [deploy](#deploy) task of **Sulu** consists of:
+* [deploy:prepare](/docs/recipe/common.md#deploy-prepare) – Prepares a new release
+  * [deploy:info](/docs/recipe/deploy/info.md#deploy-info) – Displays info about deployment
+  * [deploy:setup](/docs/recipe/deploy/setup.md#deploy-setup) – Prepares host for deploy
+  * [deploy:lock](/docs/recipe/deploy/lock.md#deploy-lock) – Locks deploy
+  * [deploy:release](/docs/recipe/deploy/release.md#deploy-release) – Prepares release
+  * [deploy:update_code](/docs/recipe/deploy/update_code.md#deploy-update_code) – Updates code
+  * [deploy:env](/docs/recipe/deploy/env.md#deploy-env) – Configure .env file
+  * [deploy:shared](/docs/recipe/deploy/shared.md#deploy-shared) – Creates symlinks for shared files and dirs
+  * [deploy:writable](/docs/recipe/deploy/writable.md#deploy-writable) – Makes writable dirs
+* [deploy:vendors](/docs/recipe/deploy/vendors.md#deploy-vendors) – Installs vendors
+* [deploy:cache:clear](/docs/recipe/symfony.md#deploy-cache-clear) – Clears cache
+* [deploy:publish](/docs/recipe/common.md#deploy-publish) – Publishes the release
+  * [deploy:symlink](/docs/recipe/deploy/symlink.md#deploy-symlink) – Creates symlink to release
+  * [deploy:unlock](/docs/recipe/deploy/lock.md#deploy-unlock) – Unlocks deploy
+  * [deploy:cleanup](/docs/recipe/deploy/cleanup.md#deploy-cleanup) – Cleanup old releases
+  * [deploy:success](/docs/recipe/common.md#deploy-success) – Deploys your project
 
 
-* Require
-  * [`recipe/symfony.php`](/docs/recipe/symfony.md)
-* Tasks
-  * [`phpcr:migrate`](#phpcrmigrate) — Migrate PHPCR
-  * [`deploy:website:cache:clear`](#deploywebsitecacheclear) — Clear cache
-  * [`deploy:website:cache:warmup`](#deploywebsitecachewarmup) — Warm up cache
+The sulu recipe is based on the [symfony](/docs/recipe/symfony.md) recipe.
+
+## Configuration
+### bin/websiteconsole
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/sulu.php#L13)
+
+
+
+```php title="Default value"
+return parse('{{bin/php}} {{release_or_current_path}}/bin/websiteconsole --no-interaction');
+```
+
 
 
 ## Tasks
-### phpcr:migrate
-[Source](https://github.com/deployphp/deployer/search?q=%22phpcr%3Amigrate%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Asulu.php)
+
+### phpcr\:migrate {#phpcr-migrate}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/sulu.php#L18)
+
+Migrates PHPCR.
 
 
 
-### deploy:website:cache:clear
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Awebsite%3Acache%3Aclear%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Asulu.php)
+
+### deploy\:website\:cache\:clear {#deploy-website-cache-clear}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/sulu.php#L23)
+
+Clears cache.
 
 
 
-### deploy:website:cache:warmup
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Awebsite%3Acache%3Awarmup%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Asulu.php)
+
+### deploy\:website\:cache\:warmup {#deploy-website-cache-warmup}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/sulu.php#L28)
+
+Warmups cache.
+
 
 
 

@@ -1,12 +1,5 @@
 <?php
 /*
-## Installing
-
-Add to your _deploy.php_
-
-```php
-require 'contrib/grafana.php';
-```
 
 ## Configuration options
 
@@ -36,12 +29,12 @@ after('deploy:success', 'grafana:annotation');
 ```
 
 */
+
 namespace Deployer;
 
 use Deployer\Utility\Httpie;
 
-
-desc('Create Grafana annotation of deployment');
+desc('Creates Grafana annotation of deployment');
 task('grafana:annotation', function () {
     $defaultConfig = [
         'url' => null,
@@ -67,8 +60,7 @@ task('grafana:annotation', function () {
     }
 
     Httpie::post($config['url'])
-        ->header('Authorization: Bearer ' . $config['token'])
-        ->header('Content-type: application/json')
-        ->body($params)
+        ->header('Authorization', 'Bearer ' . $config['token'])
+        ->jsonBody($params)
         ->send();
 });

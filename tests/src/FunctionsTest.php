@@ -7,7 +7,7 @@
 
 namespace Deployer;
 
-use Deployer\Configuration\Configuration;
+use Deployer\Configuration;
 use Deployer\Host\Host;
 use Deployer\Host\Localhost;
 use Deployer\Task\Context;
@@ -17,6 +17,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\Input;
 use Symfony\Component\Console\Output\Output;
+
 use function Deployer\localhost;
 
 class FunctionsTest extends TestCase
@@ -32,16 +33,12 @@ class FunctionsTest extends TestCase
 
         $input = $this->createMock(Input::class);
         $output = $this->createMock(Output::class);
-        $host = $this->getMockBuilder(Host::class)->disableOriginalConstructor()->getMock();
-        $host
-            ->expects($this->any())
-            ->method('config')
-            ->willReturn(new Configuration());
+        $host = new Localhost();
 
         $this->deployer = new Deployer($console);
         $this->deployer['input'] = $input;
         $this->deployer['output'] = $output;
-        Context::push(new Context($host, $input, $output));
+        Context::push(new Context($host));
     }
 
     protected function tearDown(): void
@@ -55,7 +52,6 @@ class FunctionsTest extends TestCase
     {
         host('domain.com');
         self::assertInstanceOf(Host::class, $this->deployer->hosts->get('domain.com'));
-        self::assertInstanceOf(Host::class, getHost('domain.com'));
 
         host('a1.domain.com', 'a2.domain.com')->set('roles', 'app');
         self::assertInstanceOf(Host::class, $this->deployer->hosts->get('a1.domain.com'));
@@ -74,8 +70,7 @@ class FunctionsTest extends TestCase
 
     public function testTask()
     {
-        task('task', function () {
-        });
+        task('task', function () {});
 
         $task = $this->deployer->tasks->get('task');
         self::assertInstanceOf(Task::class, $task);
@@ -86,9 +81,6 @@ class FunctionsTest extends TestCase
         task('group', ['task']);
         $task = $this->deployer->tasks->get('group');
         self::assertInstanceOf(GroupTask::class, $task);
-
-        $task = task('callable', [$this, __METHOD__]);
-        self::assertInstanceOf(Task::class, $task);
     }
 
     public function testBefore()
@@ -117,40 +109,6 @@ class FunctionsTest extends TestCase
     {
         $output = runLocally('echo "hello"');
         self::assertEquals('hello', $output);
-    }
-
-    public function testRunLocallyWithOptions()
-    {
-        Context::get()->getConfig()->set('env', ['DEPLOYER_ENV' => 'default', 'DEPLOYER_ENV_TMP' => 'default']);
-
-        $output = runLocally('echo $DEPLOYER_ENV');
-        self::assertEquals('default', $output);
-        $output = runLocally('echo $DEPLOYER_ENV_TMP');
-        self::assertEquals('default', $output);
-
-        $output = runLocally('echo $DEPLOYER_ENV', ['env' => ['DEPLOYER_ENV_TMP' => 'overwritten']]);
-        self::assertEquals('default', $output);
-        $output = runLocally('echo $DEPLOYER_ENV_TMP', ['env' => ['DEPLOYER_ENV_TMP' => 'overwritten']]);
-        self::assertEquals('overwritten', $output);
-    }
-
-    public function testRunLocallyWithTwoPlaceholders(): void
-    {
-        $cmd = "echo 'placeholder %foo% %baz%'";
-        $vars = [ 'foo' => '{{bar}}', 'baz' => 'xyz%' ];
-
-        $output = runLocally($cmd, [ 'vars' => $vars ]);
-        self::assertEquals('placeholder {{bar}} xyz%', $output);
-    }
-
-    public function testRunLocallyWithPlaceholdersAndParsedValues(): void
-    {
-        $cmd = "echo 'placeholder %foo%; parsed {{baz}}'";
-        $vars = [ 'foo' => '{{bar}}' ];
-        Context::get()->getConfig()->set('baz', 'xyz');
-
-        $output = runLocally($cmd, [ 'vars' => $vars ]);
-        self::assertEquals("placeholder {{bar}}; parsed xyz", $output);
     }
 
     public function testWithinSetsWorkingPaths()
@@ -185,7 +143,7 @@ class FunctionsTest extends TestCase
     public function testWithinReturningValue()
     {
         $output = within('/foo', function () {
-           return 'bar';
+            return 'bar';
         });
 
         self::assertEquals('bar', $output);

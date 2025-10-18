@@ -2,27 +2,31 @@
 <!-- Instead edit recipe/composer.php -->
 <!-- Then run bin/docgen -->
 
-# composer
+# Composer Recipe
+
+```php
+require 'recipe/composer.php';
+```
 
 [Source](/recipe/composer.php)
 
-
-
-* Require
-  * [`recipe/common.php`](/docs/recipe/common.md)
-* Tasks
-  * [`deploy`](#deploy) — Deploy your project
+* Requires
+  * [common](/docs/recipe/common.md)
 
 
 ## Tasks
-### deploy
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Acomposer.php)
+
+### deploy {#deploy}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/composer.php#L10)
+
+Deploys your project.
+
 
 
 
 This task is group task which contains next tasks:
-* [`deploy:prepare`](/docs/recipe/common.md#deployprepare)
-* [`deploy:vendors`](/docs/recipe/deploy/vendors.md#deployvendors)
-* [`deploy:publish`](/docs/recipe/common.md#deploypublish)
+* [deploy:prepare](/docs/recipe/common.md#deploy-prepare)
+* [deploy:vendors](/docs/recipe/deploy/vendors.md#deploy-vendors)
+* [deploy:publish](/docs/recipe/common.md#deploy-publish)
 
 

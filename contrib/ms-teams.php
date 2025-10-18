@@ -9,7 +9,7 @@ Setup:
 2. Navigate to Teams section
 3. Select existing or create new team
 4. Select existing or create new channel
-5. Hover over channel to get tree dots, click, in menu select "Connectors"
+5. Hover over channel to get three dots, click, in menu select "Connectors"
 6. Search for and configure "Incoming Webhook"
 7. Confirm/create and copy your Webhook URL
 8. Setup deploy.php
@@ -35,15 +35,15 @@ after('deploy:failed', 'teams:notify:failure');
 - `teams_title` – the title of application, default `{{application}}`
 - `teams_text` – notification message template, markdown supported
   ```
-  set('teams_text', '_{{user}}_ deploying `{{branch}}` to *{{target}}*');
+  set('teams_text', '_{{user}}_ deploying `{{what}}` to *{{where}}*');
   ```
 - `teams_success_text` – success template, default:
   ```
-  set('teams_success_text', 'Deploy to *{{target}}* successful');
+  set('teams_success_text', 'Deploy to *{{where}}* successful');
   ```
 - `teams_failure_text` – failure template, default:
   ```
-  set('teams_failure_text', 'Deploy to *{{target}}* failed');
+  set('teams_failure_text', 'Deploy to *{{where}}* failed');
   ```
 
 - `teams_color` – color's attachment
@@ -70,6 +70,7 @@ If you want to notify about failed deployment add this too:
 after('deploy:failed', 'teams:notify:failure');
 ```
  */
+
 namespace Deployer;
 
 use Deployer\Utility\Httpie;
@@ -79,57 +80,85 @@ set('teams_title', function () {
     return get('application', 'Project');
 });
 
+// Allow Continue on Failure
+set('teams_failure_continue', false);
+
 // Deploy message
-set('teams_text', '_{{user}}_ deploying `{{branch}}` to *{{target}}*');
-set('teams_success_text', 'Deploy to *{{target}}* successful');
-set('teams_failure_text', 'Deploy to *{{target}}* failed');
+set('teams_text', '_{{user}}_ deploying `{{what}}` to *{{where}}*');
+set('teams_success_text', 'Deploy to *{{where}}* successful');
+set('teams_failure_text', 'Deploy to *{{where}}* failed');
 
 // Color of attachment
 set('teams_color', '#4d91f7');
 set('teams_success_color', '#00c100');
 set('teams_failure_color', '#ff0909');
 
-desc('Notifying Teams');
+desc('Notifies Teams');
 task('teams:notify', function () {
     if (!get('teams_webhook', false)) {
+        warning('No MS Teams webhook configured');
         return;
     }
 
-    Httpie::post(get('teams_webhook'))->body([
-        "themeColor" => get('teams_color'),
-        'text'       => get('teams_text')
-    ])->send();
+    try {
+        Httpie::post(get('teams_webhook'))->jsonBody([
+            "themeColor" => get('teams_color'),
+            'text'       => get('teams_text'),
+        ])->send();
+    } catch (\Exception $e) {
+        if (get('teams_failure_continue', false)) {
+            warning('Error sending Teams Notification: ' . $e->getMessage());
+        } else {
+            throw $e;
+        }
+    }
+
 })
     ->once()
-    ->shallow()
     ->hidden();
 
-desc('Notifying Teams about deploy finish');
+desc('Notifies Teams about deploy finish');
 task('teams:notify:success', function () {
     if (!get('teams_webhook', false)) {
+        warning('No MS Teams webhook configured');
         return;
     }
 
-    Httpie::post(get('teams_webhook'))->body([
-        "themeColor" => get('teams_success_color'),
-        'text'       => get('teams_success_text')
-    ])->send();
+    try {
+        Httpie::post(get('teams_webhook'))->jsonBody([
+            "themeColor" => get('teams_success_color'),
+            'text'       => get('teams_success_text'),
+        ])->send();
+    } catch (\Exception $e) {
+        if (get('teams_failure_continue', false)) {
+            warning('Error sending Teams Notification: ' . $e->getMessage());
+        } else {
+            throw $e;
+        }
+    }
 })
     ->once()
-    ->shallow()
     ->hidden();
 
-desc('Notifying Teams about deploy failure');
+desc('Notifies Teams about deploy failure');
 task('teams:notify:failure', function () {
     if (!get('teams_webhook', false)) {
+        warning('No MS Teams webhook configured');
         return;
     }
 
-    Httpie::post(get('teams_webhook'))->body([
-        "themeColor" => get('teams_failure_color'),
-        'text'       => get('teams_failure_text')
-    ])->send();
+    try {
+        Httpie::post(get('teams_webhook'))->jsonBody([
+            "themeColor" => get('teams_failure_color'),
+            'text'       => get('teams_failure_text'),
+        ])->send();
+    } catch (\Exception $e) {
+        if (get('teams_failure_continue', false)) {
+            warning('Error sending Teams Notification: ' . $e->getMessage());
+        } else {
+            throw $e;
+        }
+    }
 })
     ->once()
-    ->shallow()
     ->hidden();

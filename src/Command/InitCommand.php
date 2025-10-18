@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /* (c) Anton Medvedev <anton@medv.io>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -7,15 +10,14 @@
 
 namespace Deployer\Command;
 
-use Deployer\Utility\Httpie;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Exception\RuntimeException;
+use Symfony\Component\Process\PhpProcess;
 use Symfony\Component\Process\Process;
-use function Deployer\Support\fork;
 
 class InitCommand extends Command
 {
@@ -26,28 +28,50 @@ class InitCommand extends Command
         $this
             ->setName('init')
             ->setDescription('Initialize deployer in your project')
-            ->addOption('path', 'p', InputOption::VALUE_OPTIONAL, 'Recipe path');
+            ->addOption('path', 'p', InputOption::VALUE_REQUIRED, 'Recipe path');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if (getenv('COLORTERM') === 'truecolor') {
+            $output->write(
+                <<<EOF
+                    ╭───────────────────────────────────────╮
+                    │                                       │
+                    │                                       │
+                    │    \e[38;2;94;231;223m_\e[39m\e[38;2;95;231;226m_\e[39m\e[38;2;96;230;228m_\e[39m\e[38;2;96;229;230m_\e[39m          \e[38;2;97;226;230m_\e[39m                    │
+                    │   \e[38;2;98;223;229m|\e[39m    \e[38;2;98;220;229m\\\e[39m \e[38;2;99;216;228m_\e[39m\e[38;2;100;213;228m_\e[39m\e[38;2;101;210;228m_\e[39m \e[38;2;101;208;227m_\e[39m\e[38;2;102;205;227m_\e[39m\e[38;2;103;202;227m_\e[39m\e[38;2;104;199;226m|\e[39m \e[38;2;104;196;226m|\e[39m\e[38;2;105;194;225m_\e[39m\e[38;2;106;191;225m_\e[39m\e[38;2;106;188;225m_\e[39m \e[38;2;107;186;224m_\e[39m \e[38;2;108;183;224m_\e[39m \e[38;2;109;181;224m_\e[39m\e[38;2;109;178;223m_\e[39m\e[38;2;110;176;223m_\e[39m \e[38;2;111;174;222m_\e[39m\e[38;2;111;171;222m_\e[39m\e[38;2;112;169;222m_\e[39m    │
+                    │   \e[38;2;113;167;221m|\e[39m  \e[38;2;113;165;221m|\e[39m  \e[38;2;114;163;221m|\e[39m \e[38;2;115;160;220m-\e[39m\e[38;2;115;158;220m_\e[39m\e[38;2;116;156;219m|\e[39m \e[38;2;117;155;219m.\e[39m \e[38;2;117;153;219m|\e[39m \e[38;2;118;151;218m|\e[39m \e[38;2;119;149;218m.\e[39m \e[38;2;119;147;218m|\e[39m \e[38;2;120;145;217m|\e[39m \e[38;2;121;144;217m|\e[39m \e[38;2;121;142;216m-\e[39m\e[38;2;122;140;216m_\e[39m\e[38;2;123;139;216m|\e[39m  \e[38;2;123;137;215m_\e[39m\e[38;2;124;136;215m|\e[39m   │
+                    │   \e[38;2;124;134;215m|\e[39m\e[38;2;125;133;214m_\e[39m\e[38;2;126;132;214m_\e[39m\e[38;2;126;130;214m_\e[39m\e[38;2;127;129;213m_\e[39m\e[38;2;127;128;213m/\e[39m\e[38;2;130;128;212m|\e[39m\e[38;2;132;129;212m_\e[39m\e[38;2;134;129;212m_\e[39m\e[38;2;137;130;211m_\e[39m\e[38;2;139;131;211m|\e[39m  \e[38;2;141;131;211m_\e[39m\e[38;2;143;132;210m|\e[39m\e[38;2;145;132;210m_\e[39m\e[38;2;147;133;209m|\e[39m\e[38;2;149;133;209m_\e[39m\e[38;2;151;134;209m_\e[39m\e[38;2;153;135;208m_\e[39m\e[38;2;155;135;208m|\e[39m\e[38;2;157;136;208m_\e[39m  \e[38;2;159;136;207m|\e[39m\e[38;2;161;137;207m_\e[39m\e[38;2;162;137;206m_\e[39m\e[38;2;164;138;206m_\e[39m\e[38;2;166;139;206m|\e[39m\e[38;2;167;139;205m_\e[39m\e[38;2;169;140;205m|\e[39m     │
+                    │             \e[38;2;170;140;205m|\e[39m\e[38;2;172;141;204m_\e[39m\e[38;2;173;141;204m|\e[39m       \e[38;2;175;142;203m|\e[39m\e[38;2;176;142;203m_\e[39m\e[38;2;177;143;203m_\e[39m\e[38;2;179;143;202m_\e[39m\e[38;2;180;144;202m|\e[39m           │
+                    │                                       │
+                    │                                       │
+                    ╰───────────────────────────────────────╯
+
+                    EOF,
+            );
+        } else {
+            $output->write(
+                <<<EOF
+                    ╭───────────────────────────────────────╮
+                    │                                       │
+                    │                                       │
+                    │    ____          _                    │
+                    │   |    \ ___ ___| |___ _ _ ___ ___    │
+                    │   |  |  | -_| . | | . | | | -_|  _|   │
+                    │   |____/|___|  _|_|___|_  |___|_|     │
+                    │             |_|       |___|           │
+                    │                                       │
+                    │                                       │
+                    ╰───────────────────────────────────────╯
+
+                    EOF,
+            );
+        }
+
         $io = new SymfonyStyle($input, $output);
         $recipePath = $input->getOption('path');
 
-        // Welcome message
-        if (getenv('COLORTERM') === 'truecolor') {
-            $output->write("
- \e[38;2;94;231;223m█\e[39m\e[38;2;95;230;227m█\e[39m\e[38;2;97;228;230m█\e[39m\e[38;2;98;222;229m█\e[39m\e[38;2;99;217;228m█\e[39m\e[38;2;100;212;228m█\e[39m\e[38;2;102;207;227m█\e[39m\e[38;2;103;202;227m█\e[39m\e[38;2;104;197;226m█\e[39m\e[38;2;105;193;225m█\e[39m\e[38;2;106;188;225m█\e[39m\e[38;2;108;184;224m█\e[39m\e[38;2;109;180;223m█\e[39m\e[38;2;110;176;223m█\e[39m\e[38;2;111;172;222m█\e[39m\e[38;2;112;168;222m█\e[39m\e[38;2;113;164;221m█\e[39m\e[38;2;115;161;220m█\e[39m\e[38;2;116;157;220m█\e[39m\e[38;2;117;154;219m█\e[39m\e[38;2;118;151;218m█\e[39m\e[38;2;119;148;218m█\e[39m\e[38;2;120;145;217m█\e[39m\e[38;2;121;142;216m█\e[39m\e[38;2;122;139;216m█\e[39m\e[38;2;123;137;215m█\e[39m\e[38;2;124;134;215m█\e[39m\e[38;2;126;132;214m█\e[39m\e[38;2;127;130;213m█\e[39m\e[38;2;128;128;213m█\e[39m\e[38;2;132;129;212m█\e[39m\e[38;2;136;130;211m█\e[39m\e[38;2;139;131;211m█\e[39m\e[38;2;143;132;210m█\e[39m\e[38;2;147;133;210m█\e[39m\e[38;2;150;134;209m█\e[39m\e[38;2;153;135;208m█\e[39m\e[38;2;157;136;208m█\e[39m\e[38;2;160;137;207m█\e[39m\e[38;2;163;138;206m█\e[39m\e[38;2;166;138;206m█\e[39m\e[38;2;168;139;205m█\e[39m\e[38;2;171;140;205m█\e[39m\e[38;2;173;141;204m█\e[39m\e[38;2;176;142;203m█\e[39m\e[38;2;178;143;203m█\e[39m\e[38;2;180;144;202m█\e[39m
-");
-        }
-
-        $io->text([
-            'Welcome to the <fg=cyan>Deployer</fg=cyan> config generator.',
-            '',
-            'Press ^C at any time to quit.',
-        ]);
-
-        // Yes?
         $language = $io->choice('Select recipe language', ['php', 'yaml'], 'php');
         if (empty($recipePath)) {
             $recipePath = "deploy.$language";
@@ -79,15 +103,25 @@ class InitCommand extends Command
         if (preg_match('/github.com:(?<org>[A-Za-z0-9_.\-]+)\//', $repository, $m)) {
             $org = $m['org'];
             $tempHostFile = tempnam(sys_get_temp_dir(), 'temp-host-file');
-            fork(function () use ($org, $tempHostFile) {
-                try {
-                    ['blog' => $blog] = Httpie::get('https://api.github.com/orgs/' . $org)->getJson();
-                    $host = parse_url($blog, PHP_URL_HOST);
-                    file_put_contents($tempHostFile, $host);
-                } catch (\Throwable $e) {
-                    // ¯\_(ツ)_/¯
-                }
-            });
+            $php = new PhpProcess(
+                <<<EOF
+                    <?php
+                    \$ch = curl_init('https://api.github.com/orgs/$org');
+                    curl_setopt(\$ch, CURLOPT_USERAGENT, 'Deployer');
+                    curl_setopt(\$ch, CURLOPT_CUSTOMREQUEST, 'GET');
+                    curl_setopt(\$ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt(\$ch, CURLOPT_FOLLOWLOCATION, true);
+                    curl_setopt(\$ch, CURLOPT_MAXREDIRS, 10);
+                    curl_setopt(\$ch, CURLOPT_CONNECTTIMEOUT, 5);
+                    curl_setopt(\$ch, CURLOPT_TIMEOUT, 5);
+                    \$result = curl_exec(\$ch);
+                    curl_close(\$ch);
+                    \$json = json_decode(\$result);
+                    \$host = parse_url(\$json->blog, PHP_URL_HOST);
+                    file_put_contents('$tempHostFile', \$host);
+                    EOF,
+            );
+            $php->start();
         }
 
         // Project
@@ -117,7 +151,7 @@ class InitCommand extends Command
         $this->telemetry();
         $output->writeln(sprintf(
             '<info>Successfully created</info> <comment>%s</comment>',
-            $recipePath
+            $recipePath,
         ));
         return 0;
     }
@@ -126,68 +160,63 @@ class InitCommand extends Command
     {
         $h = "";
         foreach ($hosts as $host) {
-            $h .= "host('{$host}');\n";
+            $h .= "host('{$host}')\n" .
+                "    ->set('remote_user', 'deployer')\n" .
+                "    ->set('deploy_path', '~/{$project}');\n";
         }
 
         return <<<PHP
-<?php
-namespace Deployer;
+            <?php
+            namespace Deployer;
 
-require 'recipe/$template.php';
+            require 'recipe/$template.php';
 
-// Config
+            // Config
 
-set('application', '{$project}');
-set('deploy_path', '~/{{application}}');
-set('repository', '{$repository}');
+            set('repository', '{$repository}');
 
-add('shared_files', []);
-add('shared_dirs', []);
-add('writable_dirs', []);
+            add('shared_files', []);
+            add('shared_dirs', []);
+            add('writable_dirs', []);
 
-// Hosts
+            // Hosts
 
-{$h}
-// Tasks
+            {$h}
+            // Hooks
 
-task('build', function () {
-    cd('{{release_path}}');
-    run('npm run build');
-});
+            after('deploy:failed', 'deploy:unlock');
 
-after('deploy:failed', 'deploy:unlock');
-
-PHP;
+            PHP;
     }
 
     private function yaml(string $template, string $project, string $repository, array $hosts): string
     {
         $h = "";
         foreach ($hosts as $host) {
-            $h .= "  $host:\n    deploy_path: '~/{{application}}'\n";
+            $h .= "  $host:\n" .
+                "    remote_user: deployer\n" .
+                "    deploy_path: '~/{$project}'\n";
         }
 
         $additionalConfigs = $this->getAdditionalConfigs($template);
 
         return <<<YAML
-import: 
-    - recipe/$template.php
+            import: 
+              - recipe/$template.php
 
-config:
-  application: '$project'
-  repository: '$repository'
-{$additionalConfigs}
-hosts:
-{$h}
-tasks:
-  build:
-    script:
-      - 'cd {{release_path}} && npm run build'
+            config:
+              repository: '$repository'
+            $additionalConfigs
+            hosts:
+            $h
+            tasks:
+              build:
+                - run: uptime  
 
-after:
-  deploy:failed: deploy:unlock
+            after:
+              deploy:failed: deploy:unlock
 
-YAML;
+            YAML;
     }
 
     private function getAdditionalConfigs(string $template): string
@@ -197,14 +226,14 @@ YAML;
         }
 
         return <<<YAML
-  shared_files:
-    - .env
-  shared_dirs:
-    - uploads
-  writable_dirs:
-    - uploads
-  
-YAML;
+              shared_files:
+                - .env
+              shared_dirs:
+                - uploads
+              writable_dirs:
+                - uploads
+              
+            YAML;
     }
 
     private function recipes(): array

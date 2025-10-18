@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /* (c) Anton Medvedev <anton@medv.io>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -7,121 +10,215 @@
 
 namespace Deployer\Executor;
 
-use Deployer\Deployer;
+use Closure;
 use Deployer\Exception\Exception;
-use Deployer\Task\Context;
-use Psr\Http\Message\ServerRequestInterface;
-use React;
-use React\Http\Message\Response;
-use Symfony\Component\Console\Helper\QuestionHelper;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Throwable;
-use function Deployer\getHost;
 
 class Server
 {
-    private $input;
-    private $output;
-    private $questionHelper;
-    private $loop;
-    private $port;
+    private string $host;
+    private int $port;
 
-    public function __construct(
-        InputInterface $input,
-        OutputInterface $output,
-        QuestionHelper $questionHelper
-    )
+    private OutputInterface $output;
+
+    private bool $stop = false;
+
+    /**
+     * @var ?resource
+     */
+    private $socket;
+
+    /**
+     * @var resource[]
+     */
+    private array $clientSockets = [];
+
+    private Closure $afterCallback;
+    private Closure $tickerCallback;
+    private Closure $routerCallback;
+
+    public function __construct($host, $port, OutputInterface $output)
     {
-        $this->input = $input;
+        self::checkRequiredExtensionsExists();
+        $this->host = $host;
+        $this->port = $port;
         $this->output = $output;
-        $this->questionHelper = $questionHelper;
     }
 
-    public function start()
+    public static function checkRequiredExtensionsExists(): void
     {
-        $this->loop = React\EventLoop\Factory::create();
-        $server = new React\Http\Server($this->loop, function (ServerRequestInterface $request) {
-            try {
-                return $this->router($request);
-            } catch (Throwable $exception) {
-                Deployer::printException($this->output, $exception);
-                return new React\Http\Message\Response(500, ['Content-Type' => 'text/plain'], 'Master error: ' . $exception->getMessage());
-            }
-        });
-        $socket = new React\Socket\Server(0, $this->loop);
-        $server->listen($socket);
-        $address = $socket->getAddress();
-        $this->port = parse_url($address, PHP_URL_PORT);
-    }
-
-    private function router(ServerRequestInterface $request): Response
-    {
-        $path = $request->getUri()->getPath();
-        switch ($path) {
-            case '/load':
-                ['host' => $host] = json_decode($request->getBody()->getContents(), true);
-
-                $host = getHost($host);
-                $config = json_encode($host->config()->persist());
-
-                return new Response(200, ['Content-Type' => 'application/json'], $config);
-
-            case '/save':
-                ['host' => $host, 'config' => $config] = json_decode($request->getBody()->getContents(), true);
-
-                $host = getHost($host);
-                $host->config()->update($config);
-
-                return new Response(200, ['Content-Type' => 'application/json'], 'true');
-
-            case '/proxy':
-                ['host' => $host, 'func' => $func, 'arguments' => $arguments] = json_decode($request->getBody()->getContents(), true);
-
-                Context::push(new Context(getHost($host), $this->input, $this->output));
-                $answer = call_user_func($func, ...$arguments);
-                Context::pop();
-
-                return new Response(200, ['Content-Type' => 'application/json'], json_encode($answer));
-
-            default:
-                throw new Exception('Server path not found: ' . $request->getUri()->getPath());
+        if (!function_exists('socket_import_stream')) {
+            throw new Exception('Required PHP extension "sockets" is not loaded');
         }
-    }
-
-    /**
-     * @param int|float $interval
-     */
-    public function addPeriodicTimer($interval, callable $callback): void
-    {
-        $this->loop->addPeriodicTimer($interval, $callback);
-    }
-
-    /**
-     * @param int|float $interval
-     */
-    public function addTimer($interval, callable $callback): void
-    {
-        $this->loop->addTimer($interval, $callback);
-    }
-
-    public function cancelTimer(React\EventLoop\TimerInterface  $timer): void
-    {
-        $this->loop->cancelTimer($timer);
+        if (!function_exists('stream_set_blocking')) {
+            throw new Exception('Required PHP extension "stream" is not loaded');
+        }
     }
 
     public function run(): void
     {
-        $this->loop->run();
+        try {
+            $this->socket = $this->createServerSocket();
+            $this->updatePort();
+            if ($this->output->isDebug()) {
+                $this->output->writeln("[master] Starting server at http://{$this->host}:{$this->port}");
+            }
+
+            ($this->afterCallback)($this->port);
+
+            while (true) {
+                $this->acceptNewConnections();
+                $this->handleClientRequests();
+
+                // Prevent CPU exhaustion and 60fps ticker.
+                usleep(16_000); // 16ms
+
+                ($this->tickerCallback)();
+
+                if ($this->stop) {
+                    break;
+                }
+            }
+
+            if ($this->output->isDebug()) {
+                $this->output->writeln("[master] Stopping server at http://{$this->host}:{$this->port}");
+            }
+        } finally {
+            if (isset($this->socket)) {
+                fclose($this->socket);
+            }
+        }
+    }
+
+    /**
+     * @return resource
+     * @throws Exception
+     */
+    private function createServerSocket()
+    {
+        $server = stream_socket_server("tcp://{$this->host}:{$this->port}", $errno, $errstr);
+        if (!$server) {
+            throw new Exception("Socket creation failed: $errstr ($errno)");
+        }
+
+        if (!stream_set_blocking($server, false)) {
+            throw new Exception("Failed to set server socket to non-blocking mode");
+        }
+
+        return $server;
+    }
+
+    private function updatePort(): void
+    {
+        $name = stream_socket_get_name($this->socket, false);
+        if ($name) {
+            list(, $port) = explode(':', $name);
+            $this->port = (int) $port;
+        } else {
+            throw new Exception("Failed to get the assigned port");
+        }
+    }
+
+    private function acceptNewConnections(): void
+    {
+        $newClientSocket = @stream_socket_accept($this->socket, 0);
+        if ($newClientSocket) {
+            if (!stream_set_blocking($newClientSocket, false)) {
+                throw new Exception("Failed to set client socket to non-blocking mode");
+            }
+            $this->clientSockets[] = $newClientSocket;
+        }
+    }
+
+    private function handleClientRequests(): void
+    {
+        foreach ($this->clientSockets as $key => $clientSocket) {
+            if (feof($clientSocket)) {
+                $this->closeClientSocket($clientSocket, $key);
+                continue;
+            }
+
+            $request = $this->readClientRequest($clientSocket);
+            list($path, $payload) = $this->parseRequest($request);
+            $response = ($this->routerCallback)($path, $payload);
+
+            $this->sendResponse($clientSocket, $response);
+            $this->closeClientSocket($clientSocket, $key);
+        }
+    }
+
+    private function readClientRequest($clientSocket)
+    {
+        $request = stream_get_contents($clientSocket);
+
+        if ($request === false) {
+            throw new Exception('Socket read failed');
+        }
+
+        return $request;
+    }
+
+    private function parseRequest($request)
+    {
+        $lines = explode("\r\n", $request);
+        $requestLine = $lines[0];
+        $parts = explode(' ', $requestLine);
+        if (count($parts) !== 3) {
+            throw new Exception("Malformed request line: $requestLine");
+        }
+        $path = $parts[1];
+
+        $headers = [];
+        for ($i = 1; $i < count($lines); $i++) {
+            $line = $lines[$i];
+            if (empty($line)) {
+                break;
+            }
+            [$key, $value] = explode(':', $line, 2);
+            $headers[$key] = trim($value);
+        }
+        if (empty($headers['Content-Type']) || $headers['Content-Type'] !== 'application/json') {
+            throw new Exception("Malformed request: invalid Content-Type");
+        }
+
+        $payload = json_decode(implode("\n", array_slice($lines, $i + 1)), true, flags: JSON_THROW_ON_ERROR);
+        return [$path, $payload];
+    }
+
+    private function sendResponse($clientSocket, Response $response)
+    {
+        $code = $response->getStatus();
+        $content = json_encode($response->getBody(), flags: JSON_PRETTY_PRINT);
+        $headers = "HTTP/1.1 $code OK\r\n" .
+            "Content-Type: application/json\r\n" .
+            "Content-Length: " . strlen($content) . "\r\n" .
+            "Connection: close\r\n\r\n";
+        fwrite($clientSocket, $headers . $content);
+    }
+
+    private function closeClientSocket($clientSocket, $key): void
+    {
+        fclose($clientSocket);
+        unset($this->clientSockets[$key]);
+    }
+
+    public function afterRun(Closure $param): void
+    {
+        $this->afterCallback = $param;
+    }
+
+    public function ticker(Closure $param): void
+    {
+        $this->tickerCallback = $param;
+    }
+
+    public function router(Closure $param)
+    {
+        $this->routerCallback = $param;
     }
 
     public function stop(): void
     {
-        $this->loop->stop();
-    }
-
-    public function getPort(): int
-    {
-        return $this->port;
+        $this->stop = true;
     }
 }

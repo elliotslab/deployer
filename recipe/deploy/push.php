@@ -5,7 +5,7 @@ namespace Deployer;
 // Creates patch of local changes and pushes them on host.
 // And applies to current_path. Push can be done many times.
 // The task purpose to be used only for development.
-desc('Push local changes to remote host');
+desc('Pushes local changes to remote host');
 task('push', function () {
     $files = explode("\n", runLocally("git diff --name-only HEAD"));
 
@@ -17,7 +17,7 @@ task('push', function () {
     upload(
         $files,
         '{{current_path}}',
-        ['progress_bar' => false, 'options' => ['--relative']]
+        ['progress_bar' => false, 'options' => ['--relative']],
     );
 
     // Mark this release as dirty.

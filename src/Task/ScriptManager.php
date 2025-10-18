@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /* (c) Anton Medvedev <anton@medv.io>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -8,13 +11,22 @@
 namespace Deployer\Task;
 
 use Deployer\Exception\Exception;
+
 use function Deployer\Support\array_flatten;
 
 class ScriptManager
 {
+    /**
+     * @var TaskCollection
+     */
     private $tasks;
+    /**
+     * @var bool
+     */
     private $hooksEnabled = true;
-    private $startFrom = null;
+    /**
+     * @var array
+     */
     private $visitedTasks = [];
 
     public function __construct(TaskCollection $tasks)
@@ -27,7 +39,7 @@ class ScriptManager
      *
      * @return Task[]
      */
-    public function getTasks(string $name, ?string $startFrom = null): array
+    public function getTasks(string $name, ?string $startFrom = null, array &$skipped = []): array
     {
         $tasks = [];
         $this->visitedTasks = [];
@@ -42,6 +54,7 @@ class ScriptManager
                     if ($task->getName() === $startFrom) {
                         $skip = false;
                     } else {
+                        $skipped[] = $task->getName();
                         continue;
                     }
                 }
@@ -51,7 +64,15 @@ class ScriptManager
                 throw new Exception('All tasks skipped via --start-from option. Nothing to run.');
             }
         }
-        return $tasks;
+
+        $enabledTasks = [];
+        foreach ($tasks as $task) {
+            if ($task->isEnabled()) {
+                $enabledTasks[] = $task;
+            }
+        }
+
+        return $enabledTasks;
     }
 
     /**
@@ -78,6 +99,9 @@ class ScriptManager
                 $subTasks = $this->doGetTasks($taskName);
                 foreach ($subTasks as $subTask) {
                     $subTask->addSelector($task->getSelector());
+                    if ($task->isOnce()) {
+                        $subTask->once();
+                    }
                     $tasks[] = $subTask;
                 }
             }

@@ -2,19 +2,23 @@
 <!-- Instead edit recipe/deploy/setup.php -->
 <!-- Then run bin/docgen -->
 
-# setup
+# Setup Recipe
+
+```php
+require 'recipe/deploy/setup.php';
+```
 
 [Source](/recipe/deploy/setup.php)
 
 
 
-* Tasks
-  * [`deploy:setup`](#deploysetup) — Preparing host for deploy
-
-
 ## Tasks
-### deploy:setup
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Asetup%22+in%3Afile+language%3Aphp+path%3Arecipe%2Fdeploy+filename%3Asetup.php)
+
+### deploy\:setup {#deploy-setup}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/setup.php#L6)
+
+Prepares host for deploy.
+
 
 
 

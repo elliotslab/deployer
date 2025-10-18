@@ -2,284 +2,586 @@
 <!-- Instead edit recipe/laravel.php -->
 <!-- Then run bin/docgen -->
 
-# laravel
+# How to Deploy a Laravel Project
+
+```php
+require 'recipe/laravel.php';
+```
 
 [Source](/recipe/laravel.php)
 
+Deployer is a free and open source deployment tool written in PHP. 
+It helps you to deploy your Laravel application to a server. 
+It is very easy to use and has a lot of features. 
+
+Three main features of Deployer are:
+- **Provisioning** - provision your server for you.
+- **Zero downtime deployment** - deploy your application without a downtime.
+- **Rollbacks** - rollback your application to a previous version, if something goes wrong.
+
+Additionally, Deployer has a lot of other features, like:
+- **Easy to use** - Deployer is very easy to use. It has a simple and intuitive syntax.
+- **Fast** - Deployer is very fast. It uses parallel connections to deploy your application.
+- **Secure** - Deployer uses SSH to connect to your server.
+- **Supports all major PHP frameworks** - Deployer supports all major PHP frameworks.
+
+You can read more about Deployer in [Getting Started](/docs/getting-started.md).
+
+The [deploy](#deploy) task of **Laravel** consists of:
+* [deploy:prepare](/docs/recipe/common.md#deploy-prepare) – Prepares a new release
+  * [deploy:info](/docs/recipe/deploy/info.md#deploy-info) – Displays info about deployment
+  * [deploy:setup](/docs/recipe/deploy/setup.md#deploy-setup) – Prepares host for deploy
+  * [deploy:lock](/docs/recipe/deploy/lock.md#deploy-lock) – Locks deploy
+  * [deploy:release](/docs/recipe/deploy/release.md#deploy-release) – Prepares release
+  * [deploy:update_code](/docs/recipe/deploy/update_code.md#deploy-update_code) – Updates code
+  * [deploy:env](/docs/recipe/deploy/env.md#deploy-env) – Configure .env file
+  * [deploy:shared](/docs/recipe/deploy/shared.md#deploy-shared) – Creates symlinks for shared files and dirs
+  * [deploy:writable](/docs/recipe/deploy/writable.md#deploy-writable) – Makes writable dirs
+* [deploy:vendors](/docs/recipe/deploy/vendors.md#deploy-vendors) – Installs vendors
+* [artisan:storage:link](/docs/recipe/laravel.md#artisan-storage-link) – Creates the symbolic links configured for the application
+* [artisan:config:cache](/docs/recipe/laravel.md#artisan-config-cache) – Creates a cache file for faster configuration loading
+* [artisan:route:cache](/docs/recipe/laravel.md#artisan-route-cache) – Creates a route cache file for faster route registration
+* [artisan:view:cache](/docs/recipe/laravel.md#artisan-view-cache) – Compiles all of the application\'s Blade templates
+* [artisan:event:cache](/docs/recipe/laravel.md#artisan-event-cache) – Discovers and cache the application\'s events and listeners
+* [artisan:migrate](/docs/recipe/laravel.md#artisan-migrate) – Runs the database migrations
+* [deploy:publish](/docs/recipe/common.md#deploy-publish) – Publishes the release
+  * [deploy:symlink](/docs/recipe/deploy/symlink.md#deploy-symlink) – Creates symlink to release
+  * [deploy:unlock](/docs/recipe/deploy/lock.md#deploy-unlock) – Unlocks deploy
+  * [deploy:cleanup](/docs/recipe/deploy/cleanup.md#deploy-cleanup) – Cleanup old releases
+  * [deploy:success](/docs/recipe/common.md#deploy-success) – Deploys your project
 
 
-* Require
-  * [`recipe/common.php`](/docs/recipe/common.md)
-* Config
-  * [`shared_dirs`](#shared_dirs)
-  * [`shared_files`](#shared_files)
-  * [`writable_dirs`](#writable_dirs)
-  * [`log_files`](#log_files)
-  * [`laravel_version`](#laravel_version)
-* Tasks
-  * [`artisan:down`](#artisandown) — Put the application into maintenance / demo mode
-  * [`artisan:up`](#artisanup) — Bring the application out of maintenance mode
-  * [`artisan:key:generate`](#artisankeygenerate) — Set the application key
-  * [`artisan:passport:keys`](#artisanpassportkeys) — Create the encryption keys for API authentication
-  * [`artisan:db:seed`](#artisandbseed) — Seed the database with records
-  * [`artisan:migrate`](#artisanmigrate) — Run the database migrations
-  * [`artisan:migrate:fresh`](#artisanmigratefresh) — Drop all tables and re-run all migrations
-  * [`artisan:migrate:rollback`](#artisanmigraterollback) — Rollback the last database migration
-  * [`artisan:migrate:status`](#artisanmigratestatus) — Show the status of each migration
-  * [`artisan:cache:clear`](#artisancacheclear) — Flush the application cache
-  * [`artisan:config:cache`](#artisanconfigcache) — Create a cache file for faster configuration loading
-  * [`artisan:config:clear`](#artisanconfigclear) — Remove the configuration cache file
-  * [`artisan:event:cache`](#artisaneventcache) — Discover and cache the application\'s events and listeners
-  * [`artisan:event:clear`](#artisaneventclear) — Clear all cached events and listeners
-  * [`artisan:event:list`](#artisaneventlist) — List the application\'s events and listeners
-  * [`artisan:optimize`](#artisanoptimize) — Cache the framework bootstrap files
-  * [`artisan:optimize:clear`](#artisanoptimizeclear) — Remove the cached bootstrap files
-  * [`artisan:route:cache`](#artisanroutecache) — Create a route cache file for faster route registration
-  * [`artisan:route:clear`](#artisanrouteclear) — Remove the route cache file
-  * [`artisan:route:list`](#artisanroutelist) — List all registered routes
-  * [`artisan:storage:link`](#artisanstoragelink) — Create the symbolic links configured for the application
-  * [`artisan:view:cache`](#artisanviewcache) — Compile all of the application\'s Blade templates
-  * [`artisan:view:clear`](#artisanviewclear) — Clear all compiled view files
-  * [`artisan:queue:failed`](#artisanqueuefailed) — List all of the failed queue jobs
-  * [`artisan:queue:flush`](#artisanqueueflush) — Flush all of the failed queue jobs
-  * [`artisan:queue:restart`](#artisanqueuerestart) — Restart queue worker daemons after their current job
-  * [`artisan:horizon`](#artisanhorizon) — Start a master supervisor in the foreground
-  * [`artisan:horizon:clear`](#artisanhorizonclear) — Delete all of the jobs from the specified queue
-  * [`artisan:horizon:continue`](#artisanhorizoncontinue) — Instruct the master supervisor to continue processing jobs
-  * [`artisan:horizon:list`](#artisanhorizonlist) — List all of the deployed machines
-  * [`artisan:horizon:pause`](#artisanhorizonpause) — Pause the master supervisor
-  * [`artisan:horizon:purge`](#artisanhorizonpurge) — Terminate any rogue Horizon processes
-  * [`artisan:horizon:status`](#artisanhorizonstatus) — Get the current status of Horizon
-  * [`artisan:horizon:terminate`](#artisanhorizonterminate) — Terminate the master supervisor so it can be restarted
-  * [`artisan:telescope:clear`](#artisantelescopeclear) — Clear all entries from Telescope
-  * [`artisan:telescope:prune`](#artisantelescopeprune) — Prune stale entries from the Telescope database
-  * [`deploy`](#deploy) — Deploy your project
+The laravel recipe is based on the [common](/docs/recipe/common.md) recipe.
 
-## Config
+## Configuration
 ### shared_dirs
-[Source](https://github.com/deployphp/deployer/search?q=%22shared_dirs%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L9)
 
-* Overrides [`shared_dirs`](/docs/recipe/common.md#shared_dirs) from `recipe/common.php`
+Overrides [shared_dirs](/docs/recipe/deploy/shared.md#shared_dirs) from `recipe/deploy/shared.php`.
 
+
+
+```php title="Default value"
+['storage']
+```
 
 
 ### shared_files
-[Source](https://github.com/deployphp/deployer/search?q=%22shared_files%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L10)
 
-* Overrides [`shared_files`](/docs/recipe/common.md#shared_files) from `recipe/common.php`
+Overrides [shared_files](/docs/recipe/deploy/shared.md#shared_files) from `recipe/deploy/shared.php`.
 
+
+
+```php title="Default value"
+['.env']
+```
 
 
 ### writable_dirs
-[Source](https://github.com/deployphp/deployer/search?q=%22writable_dirs%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L11)
 
-* Overrides [`writable_dirs`](/docs/recipe/deploy/writable.md#writable_dirs) from `recipe/deploy/writable.php`
+Overrides [writable_dirs](/docs/recipe/deploy/writable.md#writable_dirs) from `recipe/deploy/writable.php`.
 
+
+
+```php title="Default value"
+[
+    'bootstrap/cache',
+    'storage',
+    'storage/app',
+    'storage/app/public',
+    'storage/app/private',
+    'storage/framework',
+    'storage/framework/cache',
+    'storage/framework/cache/data',
+    'storage/framework/sessions',
+    'storage/framework/views',
+    'storage/logs',
+]
+```
 
 
 ### log_files
-[Source](https://github.com/deployphp/deployer/search?q=%22log_files%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L24)
 
+
+
+```php title="Default value"
+'storage/logs/*.log'
+```
+
+
+### bin/artisan
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L25)
+
+
+
+```php title="Default value"
+'{{release_or_current_path}}/artisan'
+```
 
 
 ### laravel_version
-[Source](https://github.com/deployphp/deployer/search?q=%22laravel_version%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L26)
 
+
+
+```php title="Default value"
+$result = run("{{bin/php}} {{bin/artisan}} --version");
+preg_match_all('/(\d+\.?)+/', $result, $matches);
+return $matches[0][0] ?? 5.5;
+```
+
+
+### public_path
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L31)
+
+Overrides [public_path](/docs/recipe/provision/website.md#public_path) from `recipe/provision/website.php`.
+
+
+
+```php title="Default value"
+'public'
+```
 
 
 
 ## Tasks
-### artisan:down
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Adown%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
+### artisan\:down {#artisan-down}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L95)
 
+Puts the application into maintenance / demo mode.
 
-### artisan:up
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aup%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+Maintenance mode.
 
 
+### artisan\:up {#artisan-up}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L98)
 
-### artisan:key:generate
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Akey%3Agenerate%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+Brings the application out of maintenance mode.
 
 
 
-### artisan:passport:keys
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Apassport%3Akeys%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
+### artisan\:key\:generate {#artisan-key-generate}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L105)
 
+Sets the application key.
 
-### artisan:db:seed
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Adb%3Aseed%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+Generate keys.
 
 
+### artisan\:passport\:keys {#artisan-passport-keys}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L108)
 
-### artisan:migrate
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Amigrate%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+Creates the encryption keys for API authentication.
 
 
 
-### artisan:migrate:fresh
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Amigrate%3Afresh%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
+### artisan\:db\:seed {#artisan-db-seed}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L115)
 
+Seeds the database with records.
 
-### artisan:migrate:rollback
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Amigrate%3Arollback%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+Database and migrations.
 
 
+### artisan\:migrate {#artisan-migrate}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L118)
 
-### artisan:migrate:status
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Amigrate%3Astatus%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+Runs the database migrations.
 
 
 
-### artisan:cache:clear
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Acache%3Aclear%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
+### artisan\:migrate\:fresh {#artisan-migrate-fresh}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L121)
 
+Drops all tables and re-run all migrations.
 
-### artisan:config:cache
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aconfig%3Acache%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
 
 
-### artisan:config:clear
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aconfig%3Aclear%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+### artisan\:migrate\:rollback {#artisan-migrate-rollback}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L124)
 
+Rollbacks the last database migration.
 
 
-### artisan:event:cache
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aevent%3Acache%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
 
+### artisan\:migrate\:status {#artisan-migrate-status}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L127)
 
-### artisan:event:clear
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aevent%3Aclear%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+Shows the status of each migration.
 
 
 
-### artisan:event:list
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aevent%3Alist%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
+### artisan\:cache\:clear {#artisan-cache-clear}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L134)
 
+Flushes the application cache.
 
-### artisan:optimize
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aoptimize%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+Cache and optimizations.
 
 
+### artisan\:config\:cache {#artisan-config-cache}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L137)
 
-### artisan:optimize:clear
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aoptimize%3Aclear%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+Creates a cache file for faster configuration loading.
 
 
 
-### artisan:route:cache
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aroute%3Acache%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
+### artisan\:config\:clear {#artisan-config-clear}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L140)
 
+Removes the configuration cache file.
 
-### artisan:route:clear
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aroute%3Aclear%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
 
 
-### artisan:route:list
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aroute%3Alist%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+### artisan\:event\:cache {#artisan-event-cache}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L143)
 
+Discovers and cache the application\'s events and listeners.
 
 
-### artisan:storage:link
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Astorage%3Alink%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
 
+### artisan\:event\:clear {#artisan-event-clear}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L146)
 
-### artisan:view:cache
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aview%3Acache%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+Clears all cached events and listeners.
 
 
 
-### artisan:view:clear
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aview%3Aclear%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
+### artisan\:event\:list {#artisan-event-list}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L149)
 
+Lists the application\'s events and listeners.
 
-### artisan:queue:failed
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aqueue%3Afailed%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
 
 
-### artisan:queue:flush
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aqueue%3Aflush%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+### artisan\:optimize {#artisan-optimize}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L152)
 
+Cache the framework bootstrap files.
 
 
-### artisan:queue:restart
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Aqueue%3Arestart%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
 
+### artisan\:optimize\:clear {#artisan-optimize-clear}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L155)
 
-### artisan:horizon
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Ahorizon%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+Removes the cached bootstrap files.
 
 
 
-### artisan:horizon:clear
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Ahorizon%3Aclear%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
+### artisan\:route\:cache {#artisan-route-cache}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L158)
 
+Creates a route cache file for faster route registration.
 
-### artisan:horizon:continue
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Ahorizon%3Acontinue%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
 
 
-### artisan:horizon:list
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Ahorizon%3Alist%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+### artisan\:route\:clear {#artisan-route-clear}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L161)
 
+Removes the route cache file.
 
 
-### artisan:horizon:pause
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Ahorizon%3Apause%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
 
+### artisan\:route\:list {#artisan-route-list}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L164)
 
-### artisan:horizon:purge
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Ahorizon%3Apurge%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+Lists all registered routes.
 
 
 
-### artisan:horizon:status
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Ahorizon%3Astatus%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
+### artisan\:storage\:link {#artisan-storage-link}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L167)
 
+Creates the symbolic links configured for the application.
 
-### artisan:horizon:terminate
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Ahorizon%3Aterminate%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
 
 
-### artisan:telescope:clear
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Atelescope%3Aclear%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+### artisan\:view\:cache {#artisan-view-cache}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L170)
 
+Compiles all of the application\'s Blade templates.
 
 
-### artisan:telescope:prune
-[Source](https://github.com/deployphp/deployer/search?q=%22artisan%3Atelescope%3Aprune%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
 
 
+### artisan\:view\:clear {#artisan-view-clear}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L173)
 
-### deploy
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Alaravel.php)
+Clears all compiled view files.
+
+
+
+
+### artisan\:queue\:failed {#artisan-queue-failed}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L180)
+
+Lists all of the failed queue jobs.
+
+Queue and Horizon.
+
+
+### artisan\:queue\:flush {#artisan-queue-flush}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L183)
+
+Flushes all of the failed queue jobs.
+
+
+
+
+### artisan\:queue\:restart {#artisan-queue-restart}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L186)
+
+Restarts queue worker daemons after their current job.
+
+
+
+
+### artisan\:horizon {#artisan-horizon}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L189)
+
+Starts a master supervisor in the foreground.
+
+
+
+
+### artisan\:horizon\:clear {#artisan-horizon-clear}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L192)
+
+Deletes all of the jobs from the specified queue.
+
+
+
+
+### artisan\:horizon\:continue {#artisan-horizon-continue}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L195)
+
+Instructs the master supervisor to continue processing jobs.
+
+
+
+
+### artisan\:horizon\:list {#artisan-horizon-list}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L198)
+
+Lists all of the deployed machines.
+
+
+
+
+### artisan\:horizon\:pause {#artisan-horizon-pause}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L201)
+
+Pauses the master supervisor.
+
+
+
+
+### artisan\:horizon\:purge {#artisan-horizon-purge}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L204)
+
+Terminates any rogue Horizon processes.
+
+
+
+
+### artisan\:horizon\:status {#artisan-horizon-status}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L207)
+
+Gets the current status of Horizon.
+
+
+
+
+### artisan\:horizon\:terminate {#artisan-horizon-terminate}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L210)
+
+Terminates the master supervisor so it can be restarted.
+
+
+
+
+### artisan\:horizon\:publish {#artisan-horizon-publish}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L213)
+
+Publish all of the Horizon resources.
+
+
+
+
+### artisan\:horizon\:supervisors {#artisan-horizon-supervisors}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L216)
+
+Lists all of the supervisors.
+
+
+
+
+### artisan\:horizon\:clear-metrics {#artisan-horizon-clear-metrics}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L219)
+
+Deletes metrics for all jobs and queues.
+
+
+
+
+### artisan\:horizon\:snapshot {#artisan-horizon-snapshot}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L222)
+
+Stores a snapshot of the queue metrics.
+
+
+
+
+### artisan\:schedule\:interrupt {#artisan-schedule-interrupt}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L229)
+
+Interrupt in-progress schedule:run invocations.
+
+Scheduler.
+
+
+### artisan\:telescope\:clear {#artisan-telescope-clear}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L236)
+
+Clears all entries from Telescope.
+
+Telescope.
+
+
+### artisan\:telescope\:prune {#artisan-telescope-prune}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L239)
+
+Prunes stale entries from the Telescope database.
+
+
+
+
+### artisan\:octane {#artisan-octane}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L246)
+
+Starts the octane server.
+
+Octane.
+
+
+### artisan\:octane\:reload {#artisan-octane-reload}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L249)
+
+Reloads the octane server.
+
+
+
+
+### artisan\:octane\:stop {#artisan-octane-stop}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L252)
+
+Stops the octane server.
+
+
+
+
+### artisan\:octane\:status {#artisan-octane-status}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L255)
+
+Check the status of the octane server.
+
+
+
+
+### artisan\:nova\:publish {#artisan-nova-publish}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L262)
+
+Publish all of the Laravel Nova resources.
+
+Nova.
+
+
+### artisan\:reverb\:start {#artisan-reverb-start}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L269)
+
+Starts the Reverb server.
+
+Reverb.
+
+
+### artisan\:reverb\:restart {#artisan-reverb-restart}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L272)
+
+Restarts the Reverb server.
+
+
+
+
+### artisan\:pulse\:check {#artisan-pulse-check}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L279)
+
+Starts the Pulse server.
+
+Pulse.
+
+
+### artisan\:pulse\:restart {#artisan-pulse-restart}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L282)
+
+Restarts the Pulse server.
+
+
+
+
+### artisan\:pulse\:purge {#artisan-pulse-purge}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L285)
+
+Purges all Pulse data from storage.
+
+
+
+
+### artisan\:pulse\:work {#artisan-pulse-work}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L288)
+
+Process incoming Pulse data from the ingest stream.
+
+
+
+
+### deploy {#deploy}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/laravel.php#L294)
+
+Deploys your project.
 
 Main deploy task.
 
+
 This task is group task which contains next tasks:
-* [`deploy:prepare`](/docs/recipe/common.md#deployprepare)
-* [`deploy:vendors`](/docs/recipe/deploy/vendors.md#deployvendors)
-* [`artisan:storage:link`](/docs/recipe/laravel.md#artisanstoragelink)
-* [`artisan:view:cache`](/docs/recipe/laravel.md#artisanviewcache)
-* [`artisan:config:cache`](/docs/recipe/laravel.md#artisanconfigcache)
-* [`deploy:publish`](/docs/recipe/common.md#deploypublish)
+* [deploy:prepare](/docs/recipe/common.md#deploy-prepare)
+* [deploy:vendors](/docs/recipe/deploy/vendors.md#deploy-vendors)
+* [artisan:storage:link](/docs/recipe/laravel.md#artisan-storage-link)
+* [artisan:config:cache](/docs/recipe/laravel.md#artisan-config-cache)
+* [artisan:route:cache](/docs/recipe/laravel.md#artisan-route-cache)
+* [artisan:view:cache](/docs/recipe/laravel.md#artisan-view-cache)
+* [artisan:event:cache](/docs/recipe/laravel.md#artisan-event-cache)
+* [artisan:migrate](/docs/recipe/laravel.md#artisan-migrate)
+* [deploy:publish](/docs/recipe/common.md#deploy-publish)
 
 

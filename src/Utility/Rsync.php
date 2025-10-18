@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /* (c) Anton Medvedev <anton@medv.io>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -7,19 +10,25 @@
 
 namespace Deployer\Utility;
 
-use Deployer\Component\ProcessRunner\Printer;
-use Deployer\Component\Ssh\Client;
+use Deployer\ProcessRunner\Printer;
 use Deployer\Exception\RunException;
 use Deployer\Host\Host;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
+
 use function Deployer\writeln;
 
 class Rsync
 {
+    /**
+     * @var Printer
+     */
     private $pop;
+    /**
+     * @var OutputInterface
+     */
     private $output;
 
     public function __construct(Printer $pop, OutputInterface $output)
@@ -42,11 +51,11 @@ class Rsync
             'options' => [],
             'flags' => '-azP',
             'progress_bar' => true,
-            'display_stats' => false
+            'display_stats' => false,
         ];
         $config = array_merge($defaults, $config);
 
-        $options = $config['options'] ?? [];
+        $options = $config['options'];
         $flags = $config['flags'];
         $displayStats = $config['display_stats'] || in_array('--stats', $options, true);
 
@@ -54,17 +63,22 @@ class Rsync
             $options[] = '--stats';
         }
 
-        $connectionOptions = Client::connectionOptionsString($host);
+        $connectionOptions = $host->connectionOptionsString();
         if ($connectionOptions !== '') {
             $options = array_merge($options, ['-e', "ssh $connectionOptions"]);
         }
-        if ($host->has("become")) {
+        if ($host->has('become') && !empty($host->get('become'))) {
             $options = array_merge($options, ['--rsync-path', "sudo -H -u {$host->get('become')} rsync"]);
         }
         if (!is_array($source)) {
             $source = [$source];
         }
-        $command = array_merge(['rsync', $flags], $options, $source, [$destination]);
+        $command = array_values(array_filter(
+            array_merge(['rsync', $flags], $options, $source, [$destination]),
+            function (string $value) {
+                return $value !== '';
+            },
+        ));
 
         $commandString = $command[0];
         for ($i = 1; $i < count($command); $i++) {
@@ -134,7 +148,7 @@ class Rsync
                 $commandString,
                 $process->getExitCode(),
                 $process->getOutput(),
-                $process->getErrorOutput()
+                $process->getErrorOutput(),
             );
         } finally {
             if ($progressBar) {

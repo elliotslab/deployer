@@ -4,12 +4,6 @@
 
 Create a RocketChat incoming webhook, through the administration panel.
 
-Require the new recipe into your `deploy.php`
-
-```php
-require 'contrib/rocketchat.php';
-```
-
 Add hook on deploy:
 
 ```
@@ -20,22 +14,22 @@ before('deploy', 'rocketchat:notify');
 
  - `rocketchat_webhook` - incoming rocketchat webook **required**
    ```
-   set('rocketchat_webook', 'https://rocketchat.yourcompany.com/hooks/XXXXX');
+   set('rocketchat_webhook', 'https://rocketchat.yourcompany.com/hooks/XXXXX');
    ```
 
  - `rocketchat_title` - the title of the application, defaults to `{{application}}`
  - `rocketchat_text` - notification message
    ```
-   set('rocketchat_text', '_{{user}}_ deploying {{branch}} to {{target}}');
+   set('rocketchat_text', '_{{user}}_ deploying {{what}} to {{where}}');
    ```
 
  - `rocketchat_success_text` – success template, default:
   ```
-  set('rocketchat_success_text', 'Deploy to *{{target}}* successful');
+  set('rocketchat_success_text', 'Deploy to *{{where}}* successful');
   ```
  - `rocketchat_failure_text` – failure template, default:
   ```
-  set('rocketchat_failure_text', 'Deploy to *{{target}}* failed');
+  set('rocketchat_failure_text', 'Deploy to *{{where}}* failed');
   ```
 
  - `rocketchat_color` – color's attachment
@@ -63,11 +57,12 @@ after('deploy:failed', 'rocketchat:notify:failure');
 ```
 
  */
+
 namespace Deployer;
 
 use Deployer\Utility\Httpie;
 
-set('rockchat_title', function() {
+set('rockchat_title', function () {
     return get('application', 'Project');
 });
 
@@ -83,12 +78,12 @@ set('rocketchat_color', '#000000');
 set('rocketchat_success_color', '#00c100');
 set('rocketchat_failure_color', '#ff0909');
 
-set('rocketchat_text', '_{{user}}_ deploying `{{branch}}` to *{{target}}*');
-set('rocketchat_success_text', 'Deploy to *{{target}}* successful');
-set('rocketchat_failure_text', 'Deploy to *{{target}}* failed');
+set('rocketchat_text', '_{{user}}_ deploying `{{what}}` to *{{where}}*');
+set('rocketchat_success_text', 'Deploy to *{{where}}* successful');
+set('rocketchat_failure_text', 'Deploy to *{{where}}* failed');
 
-desc('Notify RocketChat');
-task('rocketchat:notify', function() {
+desc('Notifies RocketChat');
+task('rocketchat:notify', function () {
     if (null === get('rocketchat_webhook')) {
         return;
     }
@@ -99,7 +94,7 @@ task('rocketchat:notify', function() {
         'attachments' => [[
             'text' => get('rocketchat_text'),
             'color' => get('rocketchat_color'),
-        ]]
+        ]],
     ];
 
     if (get('rocketchat_channel')) {
@@ -114,11 +109,11 @@ task('rocketchat:notify', function() {
         $body['emoji'] = get('rocketchat_icon_emoji');
     }
 
-    Httpie::post(get('rocketchat_webhook'))->body($body)->send();
+    Httpie::post(get('rocketchat_webhook'))->jsonBody($body)->send();
 });
 
-desc('Notifying RocketChat about deploy finish');
-task('rocketchat:notify:success', function() {
+desc('Notifies RocketChat about deploy finish');
+task('rocketchat:notify:success', function () {
     if (null === get('rocketchat_webhook')) {
         return;
     }
@@ -129,7 +124,7 @@ task('rocketchat:notify:success', function() {
         'attachments' => [[
             'text' => get('rocketchat_success_text'),
             'color' => get('rocketchat_success_color'),
-        ]]
+        ]],
     ];
 
     if (get('rocketchat_channel')) {
@@ -144,11 +139,11 @@ task('rocketchat:notify:success', function() {
         $body['emoji'] = get('rocketchat_icon_emoji');
     }
 
-    Httpie::post(get('rocketchat_webhook'))->body($body)->send();
+    Httpie::post(get('rocketchat_webhook'))->jsonBody($body)->send();
 });
 
-desc('Notifying RocketChat about deploy failure');
-task('rocketchat:notify:failure', function() {
+desc('Notifies RocketChat about deploy failure');
+task('rocketchat:notify:failure', function () {
     if (null === get('rocketchat_webhook')) {
         return;
     }
@@ -158,8 +153,8 @@ task('rocketchat:notify:failure', function() {
         'username' => get('rocketchat_username'),
         'attachments' => [[
             'color' => get('rocketchat_failure_color'),
-            'text' => get('rocketchat_failure_text')
-        ]]
+            'text' => get('rocketchat_failure_text'),
+        ]],
     ];
 
     if (get('rocketchat_channel')) {
@@ -174,6 +169,5 @@ task('rocketchat:notify:failure', function() {
         $body['emoji'] = get('rocketchat_icon_emoji');
     }
 
-    Httpie::post(get('rocketchat_webhook'))->body($body)->send();
+    Httpie::post(get('rocketchat_webhook'))->jsonBody($body)->send();
 });
-

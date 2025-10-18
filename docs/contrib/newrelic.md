@@ -2,62 +2,78 @@
 <!-- Instead edit contrib/newrelic.php -->
 <!-- Then run bin/docgen -->
 
-# newrelic
-
-[Source](/contrib/newrelic.php)
-
-
-## Installing
-
-Add to your _deploy.php_
+# Newrelic Recipe
 
 ```php
 require 'contrib/newrelic.php';
 ```
 
-## Configuration
+[Source](/contrib/newrelic.php)
 
+
+
+## Configuration
 - `newrelic_app_id` – newrelic's app id
 - `newrelic_api_key` – newrelic's api key
 - `newrelic_description` – message to send
-
+- `newrelic_endpoint` – newrelic's REST API endpoint
 ## Usage
-
 Since you should only notify New Relic of a successful deployment, the `newrelic:notify` task should be executed right at the end.
-
 ```php
 after('deploy', 'newrelic:notify');
 ```
 
 
-
-* Config
-  * [`newrelic_app_id`](#newrelic_app_id)
-  * [`newrelic_description`](#newrelic_description)
-  * [`newrelic_revision`](#newrelic_revision)
-* Tasks
-  * [`newrelic:notify`](#newrelicnotify) — Notifying New Relic of deployment
-
-## Config
+## Configuration
 ### newrelic_app_id
-[Source](https://github.com/deployphp/deployer/search?q=%22newrelic_app_id%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Anewrelic.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/newrelic.php#L24)
+
+
+:::info Required
+Throws exception if not set.
+:::
+
 
 
 
 ### newrelic_description
-[Source](https://github.com/deployphp/deployer/search?q=%22newrelic_description%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Anewrelic.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/newrelic.php#L28)
 
+
+
+```php title="Default value"
+return runLocally('git log -n 1 --format="%an: %s" | tr \'"\' "\'"');
+```
 
 
 ### newrelic_revision
-[Source](https://github.com/deployphp/deployer/search?q=%22newrelic_revision%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Anewrelic.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/newrelic.php#L32)
 
+
+
+```php title="Default value"
+return runLocally('git log -n 1 --format="%h"');
+```
+
+
+### newrelic_endpoint
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/newrelic.php#L36)
+
+
+
+```php title="Default value"
+'api.newrelic.com'
+```
 
 
 
 ## Tasks
-### newrelic:notify
-[Source](https://github.com/deployphp/deployer/search?q=%22newrelic%3Anotify%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Anewrelic.php)
+
+### newrelic\:notify {#newrelic-notify}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/newrelic.php#L39)
+
+Notifies New Relic of deployment.
+
 
 
 

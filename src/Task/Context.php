@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /* (c) Anton Medvedev <anton@medv.io>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -7,7 +10,7 @@
 
 namespace Deployer\Task;
 
-use Deployer\Configuration\Configuration;
+use Deployer\Configuration;
 use Deployer\Exception\Exception;
 use Deployer\Host\Host;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,36 +18,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Context
 {
-    /**
-     * @var Host
-     */
-    private $host;
-
-    /**
-     * @var InputInterface
-     */
-    private $input;
-
-    /**
-     * @var OutputInterface
-     */
-    private $output;
-
-    /**
-     * @var bool
-     */
-    private $isLocal = false;
+    private Host $host;
 
     /**
      * @var Context[]
      */
-    private static $contexts = [];
+    private static array $contexts = [];
 
-    public function __construct(Host $host, InputInterface $input = null, OutputInterface $output = null)
+    public function __construct(Host $host)
     {
         $this->host = $host;
-        $this->input = $input;
-        $this->output = $output;
     }
 
     public static function push(Context $context): void
@@ -57,11 +40,7 @@ class Context
         return !empty(self::$contexts);
     }
 
-    /**
-     * @return Context|false
-     * @throws Exception
-     */
-    public static function get()
+    public static function get(): Context
     {
         if (empty(self::$contexts)) {
             throw new Exception("Context was requested but was not available.");
@@ -94,28 +73,8 @@ class Context
         return $this->host->config();
     }
 
-    public function getInput(): InputInterface
-    {
-        return $this->input;
-    }
-
-    public function getOutput(): OutputInterface
-    {
-        return $this->output;
-    }
-
     public function getHost(): Host
     {
         return $this->host;
-    }
-
-    public function isLocal(): bool
-    {
-        return $this->isLocal;
-    }
-
-    public function setIsLocal(bool $isLocal): void
-    {
-        $this->isLocal = $isLocal;
     }
 }

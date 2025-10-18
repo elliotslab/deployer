@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /* (c) Anton Medvedev <anton@medv.io>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -12,23 +15,19 @@ use IteratorAggregate;
 
 class Collection implements Countable, IteratorAggregate
 {
-    protected $values = [];
+    protected array $values = [];
 
     public function all(): array
     {
         return $this->values;
     }
 
-    /**
-     * @return mixed
-     */
-    public function get(string $name)
+    public function get(string $name): mixed
     {
         if ($this->has($name)) {
             return $this->values[$name];
-        } else {
-            $this->throwNotFound($name);
         }
+        throw $this->notFound($name);
     }
 
     public function has(string $name): bool
@@ -36,12 +35,17 @@ class Collection implements Countable, IteratorAggregate
         return array_key_exists($name, $this->values);
     }
 
-    /**
-     * @param mixed $object
-     */
-    public function set(string $name, $object)
+    public function set(string $name, mixed $object)
     {
         $this->values[$name] = $object;
+    }
+
+    public function remove(string $name): void
+    {
+        if ($this->has($name)) {
+            unset($this->values[$name]);
+        }
+        throw $this->notFound($name);
     }
 
     public function count(): int
@@ -65,13 +69,14 @@ class Collection implements Countable, IteratorAggregate
     /**
      * @return \ArrayIterator|\Traversable
      */
+    #[\ReturnTypeWillChange]
     public function getIterator()
     {
         return new \ArrayIterator($this->values);
     }
 
-    protected function throwNotFound(string $name): void
+    protected function notFound(string $name): \InvalidArgumentException
     {
-        throw new \InvalidArgumentException("Element \"$name\" not found in collection.");
+        return new \InvalidArgumentException("Element \"$name\" not found in collection.");
     }
 }

@@ -2,19 +2,46 @@
 <!-- Instead edit recipe/deploy/shared.php -->
 <!-- Then run bin/docgen -->
 
-# shared
+# Shared Recipe
+
+```php
+require 'recipe/deploy/shared.php';
+```
 
 [Source](/recipe/deploy/shared.php)
 
 
+## Configuration
+### shared_dirs
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/shared.php#L13)
 
-* Tasks
-  * [`deploy:shared`](#deployshared) — Creating symlinks for shared files and dirs
+List of dirs what will be shared between releases.
+Each release will have symlink to those dirs stored in [deploy_path](/docs/recipe/common.md#deploy_path)/shared dir.
+```php
+set('shared_dirs', ['storage']);
+```
+
+
+
+### shared_files
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/shared.php#L20)
+
+List of files what will be shared between releases.
+Each release will have symlink to those files stored in [deploy_path](/docs/recipe/common.md#deploy_path)/shared dir.
+```php
+set('shared_files', ['.env']);
+```
+
+
 
 
 ## Tasks
-### deploy:shared
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Ashared%22+in%3Afile+language%3Aphp+path%3Arecipe%2Fdeploy+filename%3Ashared.php)
+
+### deploy\:shared {#deploy-shared}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/shared.php#L23)
+
+Creates symlinks for shared files and dirs.
+
 
 
 

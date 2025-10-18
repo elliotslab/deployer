@@ -1,19 +1,12 @@
 <?php
 /*
-## Installing
-
-Add to your _deploy.php_
-
-```php
-require 'contrib/rollbar.php';
-```
 
 ## Configuration
 
 - `rollbar_token` – access token to rollbar api
 - `rollbar_comment` – comment about deploy, default to
   ```php
-  set('rollbar_comment', '_{{user}}_ deploying `{{branch}}` to *{{target}}*');
+  set('rollbar_comment', '_{{user}}_ deploying `{{what}}` to *{{where}}*');
   ```
 - `rollbar_username` – rollbar user name
 
@@ -26,13 +19,14 @@ after('deploy', 'rollbar:notify');
 ```
 
  */
+
 namespace Deployer;
 
 use Deployer\Utility\Httpie;
 
-set('rollbar_comment', '_{{user}}_ deploying `{{branch}}` to *{{target}}*');
+set('rollbar_comment', '_{{user}}_ deploying `{{what}}` to *{{where}}*');
 
-desc('Notifying Rollbar of deployment');
+desc('Notifies Rollbar of deployment');
 task('rollbar:notify', function () {
     if (!get('rollbar_token', false)) {
         return;
@@ -40,7 +34,7 @@ task('rollbar:notify', function () {
 
     $params = [
         'access_token' => get('rollbar_token'),
-        'environment' => get('target'),
+        'environment' => get('where'),
         'revision' => runLocally('git log -n 1 --format="%h"'),
         'local_username' => get('user'),
         'rollbar_username' => get('rollbar_username'),
@@ -48,8 +42,7 @@ task('rollbar:notify', function () {
     ];
 
     Httpie::post('https://api.rollbar.com/api/1/deploy/')
-        ->form($params)
+        ->formBody($params)
         ->send();
 })
-    ->once()
-    ->shallow();
+    ->once();

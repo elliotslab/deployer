@@ -2,35 +2,33 @@
 <!-- Instead edit contrib/chatwork.php -->
 <!-- Then run bin/docgen -->
 
-# chatwork
+# Chatwork Recipe
+
+```php
+require 'contrib/chatwork.php';
+```
 
 [Source](/contrib/chatwork.php)
 
 
-# Chatwork Recipe
 
+# Chatwork Recipe
 ## Installing
   1. Create chatwork account by any manual in the internet
   2. Take chatwork token (Like: b29a700e2d15bef3f26ae6a5c142d1ea) and set `chatwork_token` parameter
   3. Take chatwork room id from url after clicked on the room, and set `chatwork_room_id` parameter
   4. If you want, you can edit `chatwork_notify_text`, `chatwork_success_text` or `chatwork_failure_text`
   5. Require chatwork recipe in your `deploy.php` file
-
 ```php
 # https://deployer.org/recipes.html
-
 require 'recipe/chatwork.php';
 ```
-
 Add hook on deploy:
- 
 ```php
 before('deploy', 'chatwork:notify');
 ```
-
 ## Configuration
-
-- `chatwork_token` – chatwork bot token, **required** 
+- `chatwork_token` – chatwork bot token, **required**
 - `chatwork_room_id` — chatwork room to push messages to **required**
 - `chatwork_notify_text` – notification message template
   ```
@@ -65,102 +63,128 @@ before('deploy', 'chatwork:notify');
     Current Path: {{current_path}}
   [/info]"
   ```
-
 ## Tasks
-
 - `chatwork:notify` – send message to chatwork
 - `chatwork:notify:success` – send success message to chatwork
 - `chatwork:notify:failure` – send failure message to chatwork
-
 ## Usage
-
 If you want to notify only about beginning of deployment add this line only:
-
 ```php
 before('deploy', 'chatwork:notify');
 ```
-
 If you want to notify about successful end of deployment add this too:
-
 ```php
-after('success', 'chatwork:notify:success');
+after('deploy:success', 'chatwork:notify:success');
 ```
 If you want to notify about failed deployment add this too:
-
 ```php
 after('deploy:failed', 'chatwork:notify:failure');
 ```
 
 
-* Config
-  * [`chatwork_token`](#chatwork_token)
-  * [`chatwork_room_id`](#chatwork_room_id)
-  * [`chatwork_api`](#chatwork_api)
-  * [`chatwork_notify_text`](#chatwork_notify_text)
-  * [`chatwork_success_text`](#chatwork_success_text)
-  * [`chatwork_failure_text`](#chatwork_failure_text)
-* Tasks
-  * [`chatwork_send_message`](#chatwork_send_message)
-  * [`chatwork:test`](#chatworktest) — Just notify chatwork with all messages, without deploying
-  * [`chatwork:notify`](#chatworknotify) — Notifying Chatwork
-  * [`chatwork:notify:success`](#chatworknotifysuccess) — Notifying Chatwork about deploy finish
-  * [`chatwork:notify:failure`](#chatworknotifyfailure) — Notifying Chatwork about deploy failure
-
-## Config
+## Configuration
 ### chatwork_token
-[Source](https://github.com/deployphp/deployer/search?q=%22chatwork_token%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Achatwork.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/chatwork.php#L93)
 
 Chatwork settings
+:::info Required
+Throws exception if not set.
+:::
+
+
+
 
 ### chatwork_room_id
-[Source](https://github.com/deployphp/deployer/search?q=%22chatwork_room_id%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Achatwork.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/chatwork.php#L96)
+
+
+:::info Required
+Throws exception if not set.
+:::
+
 
 
 
 ### chatwork_api
-[Source](https://github.com/deployphp/deployer/search?q=%22chatwork_api%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Achatwork.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/chatwork.php#L99)
 
+
+
+```php title="Default value"
+return 'https://api.chatwork.com/v2/rooms/' . get('chatwork_room_id') . '/messages';
+```
 
 
 ### chatwork_notify_text
-[Source](https://github.com/deployphp/deployer/search?q=%22chatwork_notify_text%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Achatwork.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/chatwork.php#L104)
 
 The Messages
 
-### chatwork_success_text
-[Source](https://github.com/deployphp/deployer/search?q=%22chatwork_success_text%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Achatwork.php)
+```php title="Default value"
+"[info]\n[title](*) Deployment Status: Deploying[/title]\nRepo: {{repository}}\nBranch: {{branch}}\nServer: {{hostname}}\nRelease Path: {{release_path}}\nCurrent Path: {{current_path}}\n[/info]"
+```
 
+
+### chatwork_success_text
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/chatwork.php#L105)
+
+
+
+```php title="Default value"
+"[info]\n[title](*) Deployment Status: Successfully[/title]\nRepo: {{repository}}\nBranch: {{branch}}\nServer: {{hostname}}\nRelease Path: {{release_path}}\nCurrent Path: {{current_path}}\n[/info]"
+```
 
 
 ### chatwork_failure_text
-[Source](https://github.com/deployphp/deployer/search?q=%22chatwork_failure_text%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Achatwork.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/chatwork.php#L106)
 
+
+
+```php title="Default value"
+"[info]\n[title](*) Deployment Status: Failed[/title]\nRepo: {{repository}}\nBranch: {{branch}}\nServer: {{hostname}}\nRelease Path: {{release_path}}\nCurrent Path: {{current_path}}\n[/info]"
+```
 
 
 
 ## Tasks
-### chatwork_send_message
-[Source](https://github.com/deployphp/deployer/search?q=%22chatwork_send_message%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Achatwork.php)
+
+### chatwork_send_message {#chatwork_send_message}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/chatwork.php#L109)
+
+
 
 Helpers
 
-### chatwork:test
-[Source](https://github.com/deployphp/deployer/search?q=%22chatwork%3Atest%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Achatwork.php)
+
+### chatwork\:test {#chatwork-test}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/chatwork.php#L118)
+
+Tests messages.
 
 Tasks
 
-### chatwork:notify
-[Source](https://github.com/deployphp/deployer/search?q=%22chatwork%3Anotify%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Achatwork.php)
+
+### chatwork\:notify {#chatwork-notify}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/chatwork.php#L129)
+
+Notifies Chatwork.
 
 
 
-### chatwork:notify:success
-[Source](https://github.com/deployphp/deployer/search?q=%22chatwork%3Anotify%3Asuccess%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Achatwork.php)
+
+### chatwork\:notify\:success {#chatwork-notify-success}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/chatwork.php#L144)
+
+Notifies Chatwork about deploy finish.
 
 
 
-### chatwork:notify:failure
-[Source](https://github.com/deployphp/deployer/search?q=%22chatwork%3Anotify%3Afailure%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Achatwork.php)
+
+### chatwork\:notify\:failure {#chatwork-notify-failure}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/chatwork.php#L160)
+
+Notifies Chatwork about deploy failure.
+
 
 
 

@@ -2,63 +2,122 @@
 <!-- Instead edit recipe/flow_framework.php -->
 <!-- Then run bin/docgen -->
 
-# flow_framework
+# How to Deploy a Flow Framework Project
+
+```php
+require 'recipe/flow_framework.php';
+```
 
 [Source](/recipe/flow_framework.php)
 
+Deployer is a free and open source deployment tool written in PHP. 
+It helps you to deploy your Flow Framework application to a server. 
+It is very easy to use and has a lot of features. 
+
+Three main features of Deployer are:
+- **Provisioning** - provision your server for you.
+- **Zero downtime deployment** - deploy your application without a downtime.
+- **Rollbacks** - rollback your application to a previous version, if something goes wrong.
+
+Additionally, Deployer has a lot of other features, like:
+- **Easy to use** - Deployer is very easy to use. It has a simple and intuitive syntax.
+- **Fast** - Deployer is very fast. It uses parallel connections to deploy your application.
+- **Secure** - Deployer uses SSH to connect to your server.
+- **Supports all major PHP frameworks** - Deployer supports all major PHP frameworks.
+
+You can read more about Deployer in [Getting Started](/docs/getting-started.md).
+
+The [deploy](#deploy) task of **Flow Framework** consists of:
+* [deploy:prepare](/docs/recipe/common.md#deploy-prepare) – Prepares a new release
+  * [deploy:info](/docs/recipe/deploy/info.md#deploy-info) – Displays info about deployment
+  * [deploy:setup](/docs/recipe/deploy/setup.md#deploy-setup) – Prepares host for deploy
+  * [deploy:lock](/docs/recipe/deploy/lock.md#deploy-lock) – Locks deploy
+  * [deploy:release](/docs/recipe/deploy/release.md#deploy-release) – Prepares release
+  * [deploy:update_code](/docs/recipe/deploy/update_code.md#deploy-update_code) – Updates code
+  * [deploy:env](/docs/recipe/deploy/env.md#deploy-env) – Configure .env file
+  * [deploy:shared](/docs/recipe/deploy/shared.md#deploy-shared) – Creates symlinks for shared files and dirs
+  * [deploy:writable](/docs/recipe/deploy/writable.md#deploy-writable) – Makes writable dirs
+* [deploy:vendors](/docs/recipe/deploy/vendors.md#deploy-vendors) – Installs vendors
+* [deploy:run_migrations](/docs/recipe/flow_framework.md#deploy-run_migrations) – Applies database migrations
+* [deploy:publish_resources](/docs/recipe/flow_framework.md#deploy-publish_resources) – Publishes resources
+* [deploy:publish](/docs/recipe/common.md#deploy-publish) – Publishes the release
+  * [deploy:symlink](/docs/recipe/deploy/symlink.md#deploy-symlink) – Creates symlink to release
+  * [deploy:unlock](/docs/recipe/deploy/lock.md#deploy-unlock) – Unlocks deploy
+  * [deploy:cleanup](/docs/recipe/deploy/cleanup.md#deploy-cleanup) – Cleanup old releases
+  * [deploy:success](/docs/recipe/common.md#deploy-success) – Deploys your project
 
 
-* Require
-  * [`recipe/common.php`](/docs/recipe/common.md)
-* Config
-  * [`flow_context`](#flow_context)
-  * [`flow_command`](#flow_command)
-  * [`shared_dirs`](#shared_dirs)
-* Tasks
-  * [`deploy:run_migrations`](#deployrun_migrations) — Apply database migrations
-  * [`deploy:publish_resources`](#deploypublish_resources) — Publish resources
-  * [`deploy`](#deploy) — Deploy your project
+The flow_framework recipe is based on the [common](/docs/recipe/common.md) recipe.
 
-## Config
+## Configuration
 ### flow_context
-[Source](https://github.com/deployphp/deployer/search?q=%22flow_context%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Aflow_framework.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/flow_framework.php#L10)
 
 Flow-Framework application-context
 
+```php title="Default value"
+'Production'
+```
+
+
 ### flow_command
-[Source](https://github.com/deployphp/deployer/search?q=%22flow_command%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Aflow_framework.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/flow_framework.php#L13)
 
 Flow-Framework cli-command
 
-### shared_dirs
-[Source](https://github.com/deployphp/deployer/search?q=%22shared_dirs%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Aflow_framework.php)
+```php title="Default value"
+'flow'
+```
 
-* Overrides [`shared_dirs`](/docs/recipe/common.md#shared_dirs) from `recipe/common.php`
+
+### shared_dirs
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/flow_framework.php#L16)
+
+Overrides [shared_dirs](/docs/recipe/deploy/shared.md#shared_dirs) from `recipe/deploy/shared.php`.
 
 Flow-Framework shared directories
 
+```php title="Default value"
+[
+    'Data/Persistent',
+    'Data/Logs',
+    'Configuration/{{flow_context}}',
+]
+```
+
+
 
 ## Tasks
-### deploy:run_migrations
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Arun_migrations%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Aflow_framework.php)
+
+### deploy\:run_migrations {#deploy-run_migrations}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/flow_framework.php#L26)
+
+Applies database migrations.
 
 Apply database migrations
 
-### deploy:publish_resources
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Apublish_resources%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Aflow_framework.php)
+
+### deploy\:publish_resources {#deploy-publish_resources}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/flow_framework.php#L34)
+
+Publishes resources.
 
 Publish resources
 
-### deploy
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Aflow_framework.php)
+
+### deploy {#deploy}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/flow_framework.php#L42)
+
+Deploys your project.
 
 Main task
 
+
 This task is group task which contains next tasks:
-* [`deploy:prepare`](/docs/recipe/common.md#deployprepare)
-* [`deploy:vendors`](/docs/recipe/deploy/vendors.md#deployvendors)
-* [`deploy:run_migrations`](/docs/recipe/flow_framework.md#deployrun_migrations)
-* [`deploy:publish_resources`](/docs/recipe/flow_framework.md#deploypublish_resources)
-* [`deploy:publish`](/docs/recipe/common.md#deploypublish)
+* [deploy:prepare](/docs/recipe/common.md#deploy-prepare)
+* [deploy:vendors](/docs/recipe/deploy/vendors.md#deploy-vendors)
+* [deploy:run_migrations](/docs/recipe/flow_framework.md#deploy-run_migrations)
+* [deploy:publish_resources](/docs/recipe/flow_framework.md#deploy-publish_resources)
+* [deploy:publish](/docs/recipe/common.md#deploy-publish)
 
 

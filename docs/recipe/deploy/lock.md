@@ -2,31 +2,39 @@
 <!-- Instead edit recipe/deploy/lock.php -->
 <!-- Then run bin/docgen -->
 
-# lock
+# Lock Recipe
+
+```php
+require 'recipe/deploy/lock.php';
+```
 
 [Source](/recipe/deploy/lock.php)
 
 
 
-* Tasks
-  * [`deploy:lock`](#deploylock) — Lock deploy
-  * [`deploy:unlock`](#deployunlock) — Unlock deploy
-  * [`deploy:is-unlocked`](#deployis-unlocked) — Check if deploy is unlocked
-
-
 ## Tasks
-### deploy:lock
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Alock%22+in%3Afile+language%3Aphp+path%3Arecipe%2Fdeploy+filename%3Alock.php)
+
+### deploy\:lock {#deploy-lock}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/lock.php#L8)
+
+Locks deploy.
 
 
 
-### deploy:unlock
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Aunlock%22+in%3Afile+language%3Aphp+path%3Arecipe%2Fdeploy+filename%3Alock.php)
+
+### deploy\:unlock {#deploy-unlock}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/lock.php#L21)
+
+Unlocks deploy.
 
 
 
-### deploy:is-unlocked
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Ais-unlocked%22+in%3Afile+language%3Aphp+path%3Arecipe%2Fdeploy+filename%3Alock.php)
+
+### deploy\:is_locked {#deploy-is_locked}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/lock.php#L26)
+
+Checks if deploy is locked.
+
 
 
 

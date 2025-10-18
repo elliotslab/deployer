@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /* (c) Anton Medvedev <anton@medv.io>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -8,9 +11,8 @@
 namespace Deployer;
 
 use Deployer\Collection\Collection;
-use Deployer\Command\AutocompleteCommand;
-use Deployer\Command\ConfigCommand;
 use Deployer\Command\BlackjackCommand;
+use Deployer\Command\ConfigCommand;
 use Deployer\Command\InitCommand;
 use Deployer\Command\MainCommand;
 use Deployer\Command\RunCommand;
@@ -20,13 +22,12 @@ use Deployer\Command\WorkerCommand;
 use Deployer\Component\PharUpdate\Console\Command as PharUpdateCommand;
 use Deployer\Component\PharUpdate\Console\Helper as PharUpdateHelper;
 use Deployer\Component\Pimple\Container;
-use Deployer\Component\ProcessRunner\Printer;
-use Deployer\Component\ProcessRunner\ProcessRunner;
-use Deployer\Component\Ssh\Client;
-use Deployer\Configuration\Configuration;
+use Deployer\ProcessRunner\Printer;
+use Deployer\ProcessRunner\ProcessRunner;
+use Deployer\Ssh\SshClient;
+use Deployer\Configuration;
 use Deployer\Executor\Master;
 use Deployer\Executor\Messenger;
-use Deployer\Executor\Server;
 use Deployer\Host\Host;
 use Deployer\Host\HostCollection;
 use Deployer\Host\Localhost;
@@ -35,7 +36,6 @@ use Deployer\Logger\Handler\FileHandler;
 use Deployer\Logger\Handler\NullHandler;
 use Deployer\Logger\Logger;
 use Deployer\Selector\Selector;
-use Deployer\Task;
 use Deployer\Task\ScriptManager;
 use Deployer\Task\TaskCollection;
 use Deployer\Utility\Httpie;
@@ -51,8 +51,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 /**
- * Deployer class represents DI container for configuring
- *
  * @property Application $console
  * @property InputInterface $input
  * @property OutputInterface $output
@@ -60,11 +58,10 @@ use Throwable;
  * @property HostCollection|Host[] $hosts
  * @property Configuration $config
  * @property Rsync $rsync
- * @property Client $sshClient
+ * @property SshClient $sshClient
  * @property ProcessRunner $processRunner
  * @property Task\ScriptManager $scriptManager
  * @property Selector $selector
- * @property Server $server
  * @property Master $master
  * @property Messenger $messenger
  * @property Messenger $logger
@@ -75,11 +72,7 @@ use Throwable;
  */
 class Deployer extends Container
 {
-    /**
-     * Global instance of deployer. It's can be accessed only after constructor call.
-     * @var Deployer
-     */
-    private static $instance;
+    private static Deployer $instance;
 
     public function __construct(Application $console)
     {
@@ -90,7 +83,7 @@ class Deployer extends Container
          ******************************/
 
         $console->getDefinition()->addOption(
-            new InputOption('file', 'f', InputOption::VALUE_REQUIRED, 'Recipe file path')
+            new InputOption('file', 'f', InputOption::VALUE_REQUIRED, 'Recipe file path'),
         );
 
         $this['console'] = function () use ($console) {
@@ -135,7 +128,7 @@ class Deployer extends Container
             return new Printer($c['output']);
         };
         $this['sshClient'] = function ($c) {
-            return new Client($c['output'], $c['pop'], $c['logger']);
+            return new SshClient($c['output'], $c['pop'], $c['logger']);
         };
         $this['rsync'] = function ($c) {
             return new Rsync($c['pop'], $c['output']);
@@ -161,21 +154,12 @@ class Deployer extends Container
         $this['messenger'] = function ($c) {
             return new Messenger($c['input'], $c['output'], $c['logger']);
         };
-        $this['server'] = function ($c) {
-            return new Server(
-                $c['input'],
-                $c['output'],
-                $c['questionHelper'],
-            );
-        };
         $this['master'] = function ($c) {
             return new Master(
+                $c['hosts'],
                 $c['input'],
                 $c['output'],
-                $c['server'],
                 $c['messenger'],
-                $c['sshClient'],
-                $c['config']
             );
         };
         $this['importer'] = function () {
@@ -203,13 +187,9 @@ class Deployer extends Container
         return self::$instance;
     }
 
-    /**
-     * Init console application
-     */
-    public function init()
+    public function init(): void
     {
         $this->addTaskCommands();
-        $this->getConsole()->add(new AutocompleteCommand());
         $this->getConsole()->add(new BlackjackCommand());
         $this->getConsole()->add(new ConfigCommand($this));
         $this->getConsole()->add(new WorkerCommand($this));
@@ -221,6 +201,7 @@ class Deployer extends Container
             $selfUpdate = new PharUpdateCommand('self-update');
             $selfUpdate->setDescription('Updates deployer.phar to the latest version');
             $selfUpdate->setManifestUri('https://deployer.org/manifest.json');
+            $selfUpdate->setRunningFile(DEPLOYER_BIN);
             $this->getConsole()->add($selfUpdate);
             $this->getConsole()->getHelperSet()->set(new PharUpdateHelper());
         }
@@ -229,7 +210,7 @@ class Deployer extends Container
     /**
      * Transform tasks to console commands.
      */
-    public function addTaskCommands()
+    public function addTaskCommands(): void
     {
         foreach ($this->tasks as $name => $task) {
             $command = new MainCommand($name, $task->getDescription(), $this);
@@ -239,11 +220,7 @@ class Deployer extends Container
         }
     }
 
-    /**
-     * @return mixed
-     * @throws \InvalidArgumentException
-     */
-    public function __get(string $name)
+    public function __get(string $name): mixed
     {
         if (isset($this[$name])) {
             return $this[$name];
@@ -252,10 +229,7 @@ class Deployer extends Container
         }
     }
 
-    /**
-     * @param mixed $value
-     */
-    public function __set(string $name, $value)
+    public function __set(string $name, mixed $value): void
     {
         $this[$name] = $value;
     }
@@ -270,27 +244,39 @@ class Deployer extends Container
         return $this->getConsole()->getHelperSet()->get($name);
     }
 
-    /**
-     * Run Deployer
-     */
-    public static function run(string $version, ?string $deployFile)
+    public static function run(string $version, ?string $deployFile): void
     {
-        if (!defined('DEPLOYER_VERSION')) {
-            die(<<<TXT
-  Warning! Incompatible global and local versions.
-  Please, update your globally installed Deployer,
-  or run locally installed Deployer via:
-  
-      \x1b[36mphp \x1b[38;1mvendor/bin/dep\x1b[0m
-   
-
-TXT);
+        if (str_contains($version, 'master')) {
+            // Get version from composer.lock
+            $lockFile = __DIR__ . '/../../../../composer.lock';
+            if (file_exists($lockFile)) {
+                $content = file_get_contents($lockFile);
+                $json = json_decode($content);
+                foreach ($json->packages as $package) {
+                    if ($package->name === 'deployer/deployer') {
+                        $version = $package->version;
+                    }
+                }
+            }
         }
+
+        // Version must be without "v" prefix.
+        //    Incorrect: v7.0.0
+        //    Correct: 7.0.0
+        // But deployphp/deployer uses tags with "v", and it gets passed to
+        // the composer.json file. Let's manually remove it from the version.
+        if (preg_match("/^v/", $version)) {
+            $version = substr($version, 1);
+        }
+
+        if (!defined('DEPLOYER_VERSION')) {
+            define('DEPLOYER_VERSION', $version);
+        }
+
         $input = new ArgvInput();
         $output = new ConsoleOutput();
 
         try {
-            // Init Deployer
             $console = new Application('Deployer', $version);
             $deployer = new self($console);
 
@@ -299,7 +285,6 @@ TXT);
                 $deployer->importer->import($deployFile);
             }
 
-            // Run Deployer
             $deployer->init();
             $console->run($input, $output);
 
@@ -308,10 +293,12 @@ TXT);
                 $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
             }
             self::printException($output, $exception);
+
+            exit(1);
         }
     }
 
-    public static function printException(OutputInterface $output, Throwable $exception)
+    public static function printException(OutputInterface $output, Throwable $exception): void
     {
         $class = get_class($exception);
         $file = basename($exception->getFile());
@@ -334,23 +321,22 @@ TXT);
 
     public static function isWorker(): bool
     {
-        return Deployer::get()->config->has('master_url');
+        return defined('MASTER_ENDPOINT');
     }
 
     /**
-     * @param mixed ...$arguments
      * @return array|bool|string
-     * @throws \Exception
      */
-    public static function proxyCallToMaster(Host $host, string $func, ...$arguments)
+    public static function masterCall(Host $host, string $func, mixed ...$arguments): mixed
     {
-        // As request to master will stop master permanently,
-        // wait a little bit in order for periodic timer of
-        // master gather worker outputs and print it to user.
-        usleep(100000); // Sleep 100ms.
-        return Httpie::get(get('master_url') . '/proxy')
+        // As request to master will stop master permanently, wait a little bit
+        // in order for ticker gather worker outputs and print it to user.
+        usleep(100_000); // Sleep 100ms.
+
+        return Httpie::get(MASTER_ENDPOINT . '/proxy')
+            ->setopt(CURLOPT_CONNECTTIMEOUT, 0) // no timeout
             ->setopt(CURLOPT_TIMEOUT, 0) // no timeout
-            ->body([
+            ->jsonBody([
                 'host' => $host->getAlias(),
                 'func' => $func,
                 'arguments' => $arguments,
@@ -360,6 +346,6 @@ TXT);
 
     public static function isPharArchive(): bool
     {
-        return 'phar:' === substr(__FILE__, 0, 5);
+        return str_starts_with(__FILE__, 'phar:');
     }
 }

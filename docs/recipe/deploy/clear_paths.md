@@ -2,19 +2,41 @@
 <!-- Instead edit recipe/deploy/clear_paths.php -->
 <!-- Then run bin/docgen -->
 
-# clear_paths
+# Clear Paths Recipe
+
+```php
+require 'recipe/deploy/clear_paths.php';
+```
 
 [Source](/recipe/deploy/clear_paths.php)
 
 
+## Configuration
+### clear_paths
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/clear_paths.php#L6)
 
-* Tasks
-  * [`deploy:clear_paths`](#deployclear_paths) — Cleaning up files and/or directories
+List of paths to remove from [release_path](/docs/recipe/deploy/release.md#release_path).
+
+
+
+### clear_use_sudo
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/clear_paths.php#L9)
+
+Use sudo for deploy:clear_path task?
+
+```php title="Default value"
+false
+```
+
 
 
 ## Tasks
-### deploy:clear_paths
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Aclear_paths%22+in%3Afile+language%3Aphp+path%3Arecipe%2Fdeploy+filename%3Aclear_paths.php)
+
+### deploy\:clear_paths {#deploy-clear_paths}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/clear_paths.php#L12)
+
+Cleanup files and/or directories.
+
 
 
 

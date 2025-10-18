@@ -1,4 +1,5 @@
 <?php
+
 namespace Deployer;
 
 require_once __DIR__ . '/common.php';
@@ -15,13 +16,13 @@ set('flow_command', 'flow');
 set('shared_dirs', [
     'Data/Persistent',
     'Data/Logs',
-    'Configuration/{{flow_context}}'
+    'Configuration/{{flow_context}}',
 ]);
 
 /**
  * Apply database migrations
  */
-desc('Apply database migrations');
+desc('Applies database migrations');
 task('deploy:run_migrations', function () {
     run('FLOW_CONTEXT={{flow_context}} {{bin/php}} {{release_or_current_path}}/{{flow_command}} doctrine:migrate');
 });
@@ -29,7 +30,7 @@ task('deploy:run_migrations', function () {
 /**
  * Publish resources
  */
-desc('Publish resources');
+desc('Publishes resources');
 task('deploy:publish_resources', function () {
     run('FLOW_CONTEXT={{flow_context}} {{bin/php}} {{release_or_current_path}}/{{flow_command}} resource:publish');
 });
@@ -37,7 +38,7 @@ task('deploy:publish_resources', function () {
 /**
  * Main task
  */
-desc('Deploy your project');
+desc('Deploys your project');
 task('deploy', [
     'deploy:prepare',
     'deploy:vendors',

@@ -2,126 +2,147 @@
 <!-- Instead edit contrib/discord.php -->
 <!-- Then run bin/docgen -->
 
-# discord
-
-[Source](/contrib/discord.php)
-
-
-## Installing
-
-Require discord recipe in your `deploy.php` file:
+# Discord Recipe
 
 ```php
 require 'contrib/discord.php';
 ```
 
-Add hook on deploy:
+[Source](/contrib/discord.php)
 
+
+
+## Installing
+Add hook on deploy:
 ```php
 before('deploy', 'discord:notify');
 ```
-
 ## Configuration
-
 - `discord_channel` – Discord channel ID, **required**
 - `discord_token` – Discord channel token, **required**
-
 - `discord_notify_text` – notification message template, markdown supported, default:
   ```markdown
-  :information_source: **{{user}}** is deploying branch `{{branch}}` to _{{target}}_
+  :&#8203;information_source: **{{user}}** is deploying branch `{{branch}}` to _{{where}}_
   ```
 - `discord_success_text` – success template, default:
   ```markdown
-  :white_check_mark: Branch `{{branch}}` deployed to _{{target}}_ successfully
+  :&#8203;white_check_mark: Branch `{{branch}}` deployed to _{{where}}_ successfully
   ```
 - `discord_failure_text` – failure template, default:
   ```markdown
-  :no_entry_sign: Branch `{{branch}}` has failed to deploy to _{{target}}_
-
+  :&#8203;no_entry_sign: Branch `{{branch}}` has failed to deploy to _{{where}}_
 ## Usage
-
 If you want to notify only about beginning of deployment add this line only:
-
 ```php
 before('deploy', 'discord:notify');
 ```
-
 If you want to notify about successful end of deployment add this too:
-
 ```php
 after('deploy:success', 'discord:notify:success');
 ```
-
 If you want to notify about failed deployment add this too:
-
 ```php
 after('deploy:failed', 'discord:notify:failure');
 ```
 
 
-* Config
-  * [`discord_webhook`](#discord_webhook)
-  * [`discord_notify_text`](#discord_notify_text)
-  * [`discord_success_text`](#discord_success_text)
-  * [`discord_failure_text`](#discord_failure_text)
-  * [`discord_message`](#discord_message)
-* Tasks
-  * [`discord_send_message`](#discord_send_message)
-  * [`discord:test`](#discordtest) — Just notify your Discord channel with all messages, without deploying
-  * [`discord:notify`](#discordnotify) — Notify Discord
-  * [`discord:notify:success`](#discordnotifysuccess) — Notify Discord about deploy finish
-  * [`discord:notify:failure`](#discordnotifyfailure) — Notify Discord about deploy failure
-
-## Config
+## Configuration
 ### discord_webhook
-[Source](https://github.com/deployphp/deployer/search?q=%22discord_webhook%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adiscord.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/discord.php#L54)
 
+
+
+```php title="Default value"
+return 'https://discordapp.com/api/webhooks/{{discord_channel}}/{{discord_token}}/slack';
+```
 
 
 ### discord_notify_text
-[Source](https://github.com/deployphp/deployer/search?q=%22discord_notify_text%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adiscord.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/discord.php#L59)
 
 Deploy messages
 
-### discord_success_text
-[Source](https://github.com/deployphp/deployer/search?q=%22discord_success_text%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adiscord.php)
+```php title="Default value"
+return [
+'text' => parse(':&#8203;information_source: **{{user}}** is deploying branch `{{what}}` to _{{where}}_'),
+];
+```
 
+
+### discord_success_text
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/discord.php#L64)
+
+
+
+```php title="Default value"
+return [
+'text' => parse(':&#8203;white_check_mark: Branch `{{what}}` deployed to _{{where}}_ successfully'),
+];
+```
 
 
 ### discord_failure_text
-[Source](https://github.com/deployphp/deployer/search?q=%22discord_failure_text%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adiscord.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/discord.php#L69)
 
+
+
+```php title="Default value"
+return [
+'text' => parse(':&#8203;no_entry_sign: Branch `{{what}}` has failed to deploy to _{{where}}_'),
+];
+```
 
 
 ### discord_message
-[Source](https://github.com/deployphp/deployer/search?q=%22discord_message%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adiscord.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/discord.php#L76)
 
 The message
 
+```php title="Default value"
+'discord_notify_text'
+```
+
+
 
 ## Tasks
-### discord_send_message
-[Source](https://github.com/deployphp/deployer/search?q=%22discord_send_message%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adiscord.php)
+
+### discord_send_message {#discord_send_message}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/discord.php#L79)
+
+
 
 Helpers
 
-### discord:test
-[Source](https://github.com/deployphp/deployer/search?q=%22discord%3Atest%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adiscord.php)
+
+### discord\:test {#discord-test}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/discord.php#L87)
+
+Tests messages.
 
 Tasks
 
-### discord:notify
-[Source](https://github.com/deployphp/deployer/search?q=%22discord%3Anotify%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adiscord.php)
+
+### discord\:notify {#discord-notify}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/discord.php#L98)
+
+Notifies Discord.
 
 
 
-### discord:notify:success
-[Source](https://github.com/deployphp/deployer/search?q=%22discord%3Anotify%3Asuccess%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adiscord.php)
+
+### discord\:notify\:success {#discord-notify-success}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/discord.php#L106)
+
+Notifies Discord about deploy finish.
 
 
 
-### discord:notify:failure
-[Source](https://github.com/deployphp/deployer/search?q=%22discord%3Anotify%3Afailure%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Adiscord.php)
+
+### discord\:notify\:failure {#discord-notify-failure}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/discord.php#L114)
+
+Notifies Discord about deploy failure.
+
 
 
 

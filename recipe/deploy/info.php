@@ -1,47 +1,33 @@
 <?php
+
 namespace Deployer;
 
-// Holds name of deployed branch, tag or revision.
-set('target', function () {
-    $t = '';
-    $branch = get('branch');
-    if (!empty($branch)) {
-        $t = $branch;
+// Defines "what" text for the 'deploy:info' task.
+// Uses one of the following sources:
+// 1. Repository name
+set('what', function () {
+    $repo = get('repository');
+    if (!empty($repo)) {
+        return preg_replace('/\.git$/', '', basename($repo));
     }
-    if (input()->hasOption('tag') && !empty(input()->getOption('tag'))) {
-        $t = input()->getOption('tag');
-    }
-    if (input()->hasOption('revision') && !empty(input()->getOption('revision'))) {
-        $t = input()->getOption('revision');
-    }
-    if (empty($t)) {
-        $t = "HEAD";
-    }
-    return $t;
+    return 'something';
 });
 
+// Defines "where" text for the 'deploy:info' task.
+// Uses one of the following sources:
+// 1. Host's stage label
+// 2. Host's alias
+set('where', function () {
+    $labels = get('labels');
+    if (isset($labels['stage'])) {
+        return $labels['stage'];
+    }
+    return currentHost()->getAlias();
+});
+
+desc('Displays info about deployment');
 task('deploy:info', function () {
-    $what = '';
-    $branch = get('branch');
+    $releaseName = test('[ -d {{deploy_path}}/.dep ]') ? get('release_name') : 1;
 
-    if (!empty($branch)) {
-        $what = "<fg=magenta;options=bold>$branch</>";
-    }
-
-    if (input()->hasOption('tag') && !empty(input()->getOption('tag'))) {
-        $tag = input()->getOption('tag');
-        $what = "tag <fg=magenta;options=bold>$tag</>";
-    }
-
-    if (input()->hasOption('revision') && !empty(input()->getOption('revision'))) {
-        $revision = input()->getOption('revision');
-        $what = "revision <fg=magenta;options=bold>$revision</>";
-    }
-
-    if (empty($what)) {
-        $what = "<fg=magenta;options=bold>HEAD</>";
-    }
-
-    info("deploying $what");
-})
-    ->shallow();
+    info("deploying <fg=green;options=bold>{{what}}</> to <fg=magenta;options=bold>{{where}}</> (release <fg=magenta;options=bold>{$releaseName}</>)");
+});

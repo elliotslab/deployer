@@ -7,7 +7,7 @@
 
 namespace Deployer\Host;
 
-use Deployer\Configuration\Configuration;
+use Deployer\Configuration;
 use PHPUnit\Framework\TestCase;
 
 class HostTest extends TestCase
@@ -81,6 +81,6 @@ class HostTest extends TestCase
             ->setRemoteUser('{{deploy_user}}')
             ->setPort(22);
 
-        self::assertEquals('test_user@host', $host->getConnectionString());
+        self::assertEquals('test_user@host', $host->connectionString());
     }
 }

@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /* (c) Anton Medvedev <anton@medv.io>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -19,11 +22,29 @@ use Deployer\Component\Pimple\Exception\UnknownIdentifierException;
  */
 class Container implements \ArrayAccess
 {
+    /**
+     * @var array
+     */
     private $values = [];
+    /**
+     * @var \SplObjectStorage
+     */
     private $factories;
+    /**
+     * @var \SplObjectStorage
+     */
     private $protected;
+    /**
+     * @var array
+     */
     private $frozen = [];
+    /**
+     * @var array
+     */
     private $raw = [];
+    /**
+     * @var array
+     */
     private $keys = [];
 
     /**
@@ -58,6 +79,7 @@ class Container implements \ArrayAccess
      * @throws FrozenServiceException Prevent override of a frozen service
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
      */
+    #[\ReturnTypeWillChange]
     public function offsetSet($id, $value)
     {
         if (isset($this->frozen[$id])) {
@@ -78,6 +100,7 @@ class Container implements \ArrayAccess
      * @throws UnknownIdentifierException If the identifier is not defined
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($id)
     {
         if (!isset($this->keys[$id])) {
@@ -114,6 +137,7 @@ class Container implements \ArrayAccess
      * @return bool
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
      */
+    #[\ReturnTypeWillChange]
     public function offsetExists($id)
     {
         return isset($this->keys[$id]);
@@ -125,6 +149,7 @@ class Container implements \ArrayAccess
      * @param string $id The unique identifier for the parameter or object
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
      */
+    #[\ReturnTypeWillChange]
     public function offsetUnset($id)
     {
         if (isset($this->keys[$id])) {

@@ -2,39 +2,35 @@
 <!-- Instead edit contrib/bugsnag.php -->
 <!-- Then run bin/docgen -->
 
-# bugsnag
-
-[Source](/contrib/bugsnag.php)
-
-
-Add to your _deploy.php_
+# Bugsnag Recipe
 
 ```php
 require 'contrib/bugsnag.php';
 ```
 
-## Configuration
+[Source](/contrib/bugsnag.php)
 
+
+
+## Configuration
 - *bugsnag_api_key* – the API Key associated with the project. Informs Bugsnag which project has been deployed. This is the only required field.
 - *bugsnag_provider* – the name of your source control provider. Required when repository is supplied and only for on-premise services.
 - *bugsnag_app_version* – the app version of the code you are currently deploying. Only set this if you tag your releases with semantic version numbers and deploy infrequently. (Optional.)
-
 ## Usage
-
 Since you should only notify Bugsnag of a successful deployment, the `bugsnag:notify` task should be executed right at the end.
-
 ```php
 after('deploy', 'bugsnag:notify');
 ```
 
 
-* Tasks
-  * [`bugsnag:notify`](#bugsnagnotify) — Notifying Bugsnag of deployment
-
 
 ## Tasks
-### bugsnag:notify
-[Source](https://github.com/deployphp/deployer/search?q=%22bugsnag%3Anotify%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Abugsnag.php)
+
+### bugsnag\:notify {#bugsnag-notify}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/bugsnag.php#L24)
+
+Notifies Bugsnag of deployment.
+
 
 
 

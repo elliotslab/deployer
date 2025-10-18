@@ -2,70 +2,132 @@
 <!-- Instead edit recipe/drupal7.php -->
 <!-- Then run bin/docgen -->
 
-# drupal7
+# How to Deploy a Drupal 7 Project
+
+```php
+require 'recipe/drupal7.php';
+```
 
 [Source](/recipe/drupal7.php)
 
+Deployer is a free and open source deployment tool written in PHP. 
+It helps you to deploy your Drupal 7 application to a server. 
+It is very easy to use and has a lot of features. 
+
+Three main features of Deployer are:
+- **Provisioning** - provision your server for you.
+- **Zero downtime deployment** - deploy your application without a downtime.
+- **Rollbacks** - rollback your application to a previous version, if something goes wrong.
+
+Additionally, Deployer has a lot of other features, like:
+- **Easy to use** - Deployer is very easy to use. It has a simple and intuitive syntax.
+- **Fast** - Deployer is very fast. It uses parallel connections to deploy your application.
+- **Secure** - Deployer uses SSH to connect to your server.
+- **Supports all major PHP frameworks** - Deployer supports all major PHP frameworks.
+
+You can read more about Deployer in [Getting Started](/docs/getting-started.md).
+
+The [deploy](#deploy) task of **Drupal 7** consists of:
+* [deploy:prepare](/docs/recipe/common.md#deploy-prepare) – Prepares a new release
+  * [deploy:info](/docs/recipe/deploy/info.md#deploy-info) – Displays info about deployment
+  * [deploy:setup](/docs/recipe/deploy/setup.md#deploy-setup) – Prepares host for deploy
+  * [deploy:lock](/docs/recipe/deploy/lock.md#deploy-lock) – Locks deploy
+  * [deploy:release](/docs/recipe/deploy/release.md#deploy-release) – Prepares release
+  * [deploy:update_code](/docs/recipe/deploy/update_code.md#deploy-update_code) – Updates code
+  * [deploy:env](/docs/recipe/deploy/env.md#deploy-env) – Configure .env file
+  * [deploy:shared](/docs/recipe/deploy/shared.md#deploy-shared) – Creates symlinks for shared files and dirs
+  * [deploy:writable](/docs/recipe/deploy/writable.md#deploy-writable) – Makes writable dirs
+* [deploy:publish](/docs/recipe/common.md#deploy-publish) – Publishes the release
+  * [deploy:symlink](/docs/recipe/deploy/symlink.md#deploy-symlink) – Creates symlink to release
+  * [deploy:unlock](/docs/recipe/deploy/lock.md#deploy-unlock) – Unlocks deploy
+  * [deploy:cleanup](/docs/recipe/deploy/cleanup.md#deploy-cleanup) – Cleanup old releases
+  * [deploy:success](/docs/recipe/common.md#deploy-success) – Deploys your project
 
 
-* Require
-  * [`recipe/common.php`](/docs/recipe/common.md)
-* Config
-  * [`drupal_site`](#drupal_site)
-  * [`shared_dirs`](#shared_dirs)
-  * [`shared_files`](#shared_files)
-  * [`writable_dirs`](#writable_dirs)
-* Tasks
-  * [`deploy`](#deploy)
-  * [`drupal:settings`](#drupalsettings)
-  * [`drupal:upload_files`](#drupalupload_files)
+The drupal7 recipe is based on the [common](/docs/recipe/common.md) recipe.
 
-## Config
+## Configuration
 ### drupal_site
-[Source](https://github.com/deployphp/deployer/search?q=%22drupal_site%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Adrupal7.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/drupal7.php#L15)
 
 Set Drupal 7 site. Change if you use different site
 
-### shared_dirs
-[Source](https://github.com/deployphp/deployer/search?q=%22shared_dirs%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Adrupal7.php)
+```php title="Default value"
+'default'
+```
 
-* Overrides [`shared_dirs`](/docs/recipe/common.md#shared_dirs) from `recipe/common.php`
+
+### shared_dirs
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/drupal7.php#L18)
+
+Overrides [shared_dirs](/docs/recipe/deploy/shared.md#shared_dirs) from `recipe/deploy/shared.php`.
 
 Drupal 7 shared dirs
 
-### shared_files
-[Source](https://github.com/deployphp/deployer/search?q=%22shared_files%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Adrupal7.php)
+```php title="Default value"
+[
+    'sites/{{drupal_site}}/files',
+]
+```
 
-* Overrides [`shared_files`](/docs/recipe/common.md#shared_files) from `recipe/common.php`
+
+### shared_files
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/drupal7.php#L23)
+
+Overrides [shared_files](/docs/recipe/deploy/shared.md#shared_files) from `recipe/deploy/shared.php`.
 
 Drupal 7 shared files
 
-### writable_dirs
-[Source](https://github.com/deployphp/deployer/search?q=%22writable_dirs%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Adrupal7.php)
+```php title="Default value"
+[
+    'sites/{{drupal_site}}/settings.php',
+]
+```
 
-* Overrides [`writable_dirs`](/docs/recipe/deploy/writable.md#writable_dirs) from `recipe/deploy/writable.php`
+
+### writable_dirs
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/drupal7.php#L28)
+
+Overrides [writable_dirs](/docs/recipe/deploy/writable.md#writable_dirs) from `recipe/deploy/writable.php`.
 
 Drupal 7 writable dirs
 
+```php title="Default value"
+[
+    'sites/{{drupal_site}}/files',
+]
+```
+
+
 
 ## Tasks
-### deploy
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Adrupal7.php)
+
+### deploy {#deploy}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/drupal7.php#L9)
+
+
+
 
 
 
 This task is group task which contains next tasks:
-* [`deploy:prepare`](/docs/recipe/common.md#deployprepare)
-* [`deploy:publish`](/docs/recipe/common.md#deploypublish)
+* [deploy:prepare](/docs/recipe/common.md#deploy-prepare)
+* [deploy:publish](/docs/recipe/common.md#deploy-publish)
 
 
-### drupal:settings
-[Source](https://github.com/deployphp/deployer/search?q=%22drupal%3Asettings%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Adrupal7.php)
+### drupal\:settings {#drupal-settings}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/drupal7.php#L34)
+
+
 
 Create and upload Drupal 7 settings.php using values from secrets
 
-### drupal:upload_files
-[Source](https://github.com/deployphp/deployer/search?q=%22drupal%3Aupload_files%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Adrupal7.php)
+
+### drupal\:upload_files {#drupal-upload_files}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/drupal7.php#L76)
+
+
 
 Upload Drupal 7 files folder
+
 

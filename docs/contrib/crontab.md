@@ -2,45 +2,78 @@
 <!-- Instead edit contrib/crontab.php -->
 <!-- Then run bin/docgen -->
 
-# crontab
+# Crontab Recipe
+
+```php
+require 'contrib/crontab.php';
+```
 
 [Source](/contrib/crontab.php)
 
 
+
 Recipe for adding crontab jobs.
-
-It checks for duplicates by the command part of the job. Changing the schedule will update the crontab. So when you change the command part you have to manually remove the old one. Use `crontab -e` on the server to remove it.
-
+This recipe creates a new section in the crontab file with the configured jobs.
+The section is identified by the *crontab:identifier* variable, by default the application name.
 ## Configuration
-
 - *crontab:jobs* - An array of strings with crontab lines.
-
 ## Usage
-
 ```php
 require 'contrib/crontab.php';
-
 after('deploy:success', 'crontab:sync');
-
 add('crontab:jobs', [
     '* * * * * cd {{current_path}} && {{bin/php}} artisan schedule:run >> /dev/null 2>&1',
 ]);
 ```
 
 
-* Tasks
-  * [`crontab:load`](#crontabload) — Load crontab
-  * [`crontab:sync`](#crontabsync) — Sync crontab jobs
+## Configuration
+### bin/crontab
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/crontab.php#L30)
+
+Get path to bin
+
+```php title="Default value"
+return which('crontab');
+```
+
+
+### crontab:identifier
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/crontab.php#L35)
+
+Set the identifier used in the crontab, application name by default
+
+```php title="Default value"
+return get('application', 'application');
+```
+
+
+### crontab:use_sudo
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/crontab.php#L40)
+
+Use sudo to run crontab. When running crontab with sudo, you can use the `-u` parameter to change a crontab for a different user.
+
+```php title="Default value"
+false
+```
+
 
 
 ## Tasks
-### crontab:load
-[Source](https://github.com/deployphp/deployer/search?q=%22crontab%3Aload%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acrontab.php)
+
+### crontab\:sync {#crontab-sync}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/crontab.php#L43)
+
+Sync crontab jobs.
 
 
 
-### crontab:sync
-[Source](https://github.com/deployphp/deployer/search?q=%22crontab%3Async%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acrontab.php)
+
+### crontab\:remove {#crontab-remove}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/crontab.php#L87)
+
+Remove crontab jobs.
+
 
 
 

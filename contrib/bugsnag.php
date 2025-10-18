@@ -1,10 +1,5 @@
 <?php
 /*
-Add to your _deploy.php_
-
-```php
-require 'contrib/bugsnag.php';
-```
 
 ## Configuration
 
@@ -25,7 +20,7 @@ namespace Deployer;
 
 use Deployer\Utility\Httpie;
 
-desc('Notifying Bugsnag of deployment');
+desc('Notifies Bugsnag of deployment');
 task('bugsnag:notify', function () {
     $data = [
         'apiKey'       => get('bugsnag_api_key'),
@@ -38,6 +33,6 @@ task('bugsnag:notify', function () {
     ];
 
     Httpie::post('https://notify.bugsnag.com/deploy')
-        ->body($data)
+        ->jsonBody($data)
         ->send();
 });

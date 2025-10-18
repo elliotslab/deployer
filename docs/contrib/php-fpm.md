@@ -2,66 +2,83 @@
 <!-- Instead edit contrib/php-fpm.php -->
 <!-- Then run bin/docgen -->
 
-# php-fpm
-
-[Source](/contrib/php-fpm.php)
-
-
-## Installing
-
-Add to your _deploy.php_
+# Php-fpm Recipe
 
 ```php
 require 'contrib/php-fpm.php';
 ```
 
-## Configuration
+[Source](/contrib/php-fpm.php)
 
+
+
+:::caution
+Do **not** reload php-fpm. Some user requests could fail or not complete in the
+process of reloading.
+Instead, configure your server [properly](avoid-php-fpm-reloading). If you're using Deployer's provision
+recipe, it's already configured the right way and no php-fpm reload is needed.
+:::
+## Configuration
 - `php_fpm_version` – The PHP-fpm version. For example: `8.0`.
 - `php_fpm_service` – The full name of the PHP-fpm service. Defaults to `php{{php_fpm_version}}-fpm`.
-- `php_fpm_command` – The command to run to reload PHP-fpm. Defaults to `echo "" | sudo -S /usr/sbin/service {{php_fpm_service}} reload`.
-
+- `php_fpm_command` – The command to run to reload PHP-fpm. Defaults to `sudo systemctl reload {{php_fpm_service}}`.
 ## Usage
-
 Start by explicitely providing the current version of PHP-version using the `php_fpm_version`.
 Alternatively, you may use any of the options above to configure how PHP-fpm should reload.
-
 Then, add the `php-fpm:reload` task at the end of your deployments by using the `after` method like so.
-
 ```php
 set('php_fpm_version', '8.0');
 after('deploy', 'php-fpm:reload');
 ```
 
 
-
-* Config
-  * [`php_fpm_version`](#php_fpm_version)
-  * [`php_fpm_service`](#php_fpm_service)
-  * [`php_fpm_command`](#php_fpm_command)
-* Tasks
-  * [`php-fpm:reload`](#php-fpmreload) — Reload the php-fpm service
-
-## Config
+## Configuration
 ### php_fpm_version
-[Source](https://github.com/deployphp/deployer/search?q=%22php_fpm_version%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Aphp-fpm.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/php-fpm.php#L35)
 
+:::caution
+Do **not** reload php-fpm. Some user requests could fail or not complete in the
+process of reloading.
+Instead, configure your server [properly](avoid-php-fpm-reloading). If you're using Deployer's provision
+recipe, it's already configured the right way and no php-fpm reload is needed.
+:::
+## Configuration
+- `php_fpm_version` – The PHP-fpm version. For example: `8.0`.
+- `php_fpm_service` – The full name of the PHP-fpm service. Defaults to `php[php_fpm_version](/docs/contrib/php-fpm.md#php_fpm_version)-fpm`.
+- `php_fpm_command` – The command to run to reload PHP-fpm. Defaults to `sudo systemctl reload [php_fpm_service](/docs/contrib/php-fpm.md#php_fpm_service)`.
+## Usage
+Start by explicitely providing the current version of PHP-version using the `php_fpm_version`.
+Alternatively, you may use any of the options above to configure how PHP-fpm should reload.
+Then, add the `php-fpm:reload` task at the end of your deployments by using the `after` method like so.
+```php
+set('php_fpm_version', '8.0');
+after('deploy', 'php-fpm:reload');
+```
+Automatically detects by using [bin/php](/docs/recipe/common.md#bin/php).
+
+```php title="Default value"
+return run('{{bin/php}} -r "printf(\'%d.%d\', PHP_MAJOR_VERSION, PHP_MINOR_VERSION);"');
+```
 
 
 ### php_fpm_service
-[Source](https://github.com/deployphp/deployer/search?q=%22php_fpm_service%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Aphp-fpm.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/php-fpm.php#L39)
 
 
 
-### php_fpm_command
-[Source](https://github.com/deployphp/deployer/search?q=%22php_fpm_command%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Aphp-fpm.php)
-
+```php title="Default value"
+'php{{php_fpm_version}}-fpm'
+```
 
 
 
 ## Tasks
-### php-fpm:reload
-[Source](https://github.com/deployphp/deployer/search?q=%22php-fpm%3Areload%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Aphp-fpm.php)
+
+### php-fpm\:reload {#php-fpm-reload}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/php-fpm.php#L42)
+
+Reloads the php-fpm service.
+
 
 
 

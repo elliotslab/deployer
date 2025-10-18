@@ -1,4 +1,5 @@
 <?php
+
 namespace Deployer;
 
 require_once __DIR__ . '/common.php';
@@ -14,7 +15,7 @@ set('writable_dirs', ['application/cache', 'application/logs']);
 /**
  * Main task
  */
-desc('Deploy your project');
+desc('Deploys your project');
 task('deploy', [
     'deploy:prepare',
     'deploy:vendors',

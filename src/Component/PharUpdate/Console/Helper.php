@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Deployer\Component\PharUpdate\Console;
 
 use Deployer\Component\PharUpdate\Manager;
@@ -12,13 +15,6 @@ use Symfony\Component\Console\Helper\Helper as Base;
  */
 class Helper extends Base
 {
-    /**
-     * The update manager.
-     *
-     * @var Manager
-     */
-    private $manager;
-
     /**
      * Returns the update manager.
      *

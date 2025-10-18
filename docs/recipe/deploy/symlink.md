@@ -2,19 +2,34 @@
 <!-- Instead edit recipe/deploy/symlink.php -->
 <!-- Then run bin/docgen -->
 
-# symlink
+# Symlink Recipe
+
+```php
+require 'recipe/deploy/symlink.php';
+```
 
 [Source](/recipe/deploy/symlink.php)
 
 
+## Configuration
+### use_atomic_symlink
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/symlink.php#L6)
 
-* Tasks
-  * [`deploy:symlink`](#deploysymlink) — Creating symlink to release
+Use mv -T if available. Will check automatically.
+
+```php title="Default value"
+return commandSupportsOption('mv', '--no-target-directory');
+```
+
 
 
 ## Tasks
-### deploy:symlink
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Asymlink%22+in%3Afile+language%3Aphp+path%3Arecipe%2Fdeploy+filename%3Asymlink.php)
+
+### deploy\:symlink {#deploy-symlink}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/symlink.php#L11)
+
+Creates symlink to release.
+
 
 
 

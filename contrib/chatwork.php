@@ -16,14 +16,14 @@ require 'recipe/chatwork.php';
 ```
 
 Add hook on deploy:
- 
+
 ```php
 before('deploy', 'chatwork:notify');
 ```
 
 ## Configuration
 
-- `chatwork_token` – chatwork bot token, **required** 
+- `chatwork_token` – chatwork bot token, **required**
 - `chatwork_room_id` — chatwork room to push messages to **required**
 - `chatwork_notify_text` – notification message template
   ```
@@ -76,7 +76,7 @@ before('deploy', 'chatwork:notify');
 If you want to notify about successful end of deployment add this too:
 
 ```php
-after('success', 'chatwork:notify:success');
+after('deploy:success', 'chatwork:notify:success');
 ```
 If you want to notify about failed deployment add this too:
 
@@ -84,7 +84,9 @@ If you want to notify about failed deployment add this too:
 after('deploy:failed', 'chatwork:notify:failure');
 ```
  */
+
 namespace Deployer;
+
 use Deployer\Utility\Httpie;
 
 // Chatwork settings
@@ -95,7 +97,7 @@ set('chatwork_room_id', function () {
     throw new \RuntimeException('Please configure "chatwork_room_id" parameter.');
 });
 set('chatwork_api', function () {
-   return 'https://api.chatwork.com/v2/rooms/' . get('chatwork_room_id') . '/messages';
+    return 'https://api.chatwork.com/v2/rooms/' . get('chatwork_room_id') . '/messages';
 });
 
 // The Messages
@@ -104,15 +106,15 @@ set('chatwork_success_text', "[info]\n[title](*) Deployment Status: Successfully
 set('chatwork_failure_text', "[info]\n[title](*) Deployment Status: Failed[/title]\nRepo: {{repository}}\nBranch: {{branch}}\nServer: {{hostname}}\nRelease Path: {{release_path}}\nCurrent Path: {{current_path}}\n[/info]");
 
 // Helpers
-task('chatwork_send_message', function() {
+task('chatwork_send_message', function () {
     Httpie::post(get('chatwork_api'))
         ->query(['body' => get('chatwork_message'),])
-        ->header("X-ChatWorkToken: ". get('chatwork_token'))
+        ->header("X-ChatWorkToken", get('chatwork_token'))
         ->send();
 });
 
 // Tasks
-desc('Just notify chatwork with all messages, without deploying');
+desc('Tests messages');
 task('chatwork:test', function () {
     set('chatwork_message', get('chatwork_notify_text'));
     invoke('chatwork_send_message');
@@ -121,15 +123,14 @@ task('chatwork:test', function () {
     set('chatwork_message', get('chatwork_failure_text'));
     invoke('chatwork_send_message');
 })
-    ->once()
-    ->shallow();
+    ->once();
 
-desc('Notifying Chatwork');
+desc('Notifies Chatwork');
 task('chatwork:notify', function () {
     if (!get('chatwork_token', false)) {
         return;
     }
-    
+
     if (!get('chatwork_room_id', false)) {
         return;
     }
@@ -137,15 +138,14 @@ task('chatwork:notify', function () {
     invoke('chatwork_send_message');
 })
     ->once()
-    ->shallow()
     ->hidden();
 
-desc('Notifying Chatwork about deploy finish');
+desc('Notifies Chatwork about deploy finish');
 task('chatwork:notify:success', function () {
     if (!get('chatwork_token', false)) {
         return;
     }
-      
+
     if (!get('chatwork_room_id', false)) {
         return;
     }
@@ -154,15 +154,14 @@ task('chatwork:notify:success', function () {
     invoke('chatwork_send_message');
 })
     ->once()
-    ->shallow()
     ->hidden();
 
-desc('Notifying Chatwork about deploy failure');
+desc('Notifies Chatwork about deploy failure');
 task('chatwork:notify:failure', function () {
     if (!get('chatwork_token', false)) {
         return;
     }
-      
+
     if (!get('chatwork_room_id', false)) {
         return;
     }
@@ -171,5 +170,4 @@ task('chatwork:notify:failure', function () {
     invoke('chatwork_send_message');
 })
     ->once()
-    ->shallow()
     ->hidden();

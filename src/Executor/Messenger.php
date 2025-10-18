@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /* (c) Anton Medvedev <anton@medv.io>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -18,8 +21,19 @@ use Throwable;
 
 class Messenger
 {
+    /**
+     * @var Input
+     */
     private $input;
+
+    /**
+     * @var Output
+     */
     private $output;
+
+    /**
+     * @var Logger
+     */
     private $logger;
 
     /**
@@ -37,20 +51,23 @@ class Messenger
     public function startTask(Task $task): void
     {
         $this->startTime = round(microtime(true) * 1000);
-        if (!$task->isShallow()) {
+        if (getenv('GITHUB_WORKFLOW')) {
+            $this->output->writeln("::group::task {$task->getName()}");
+        } elseif (getenv('GITLAB_CI')) {
+            $sectionId = md5($task->getName());
+            $start = round($this->startTime / 1000);
+            $this->output->writeln("\e[0Ksection_start:{$start}:{$sectionId}\r\e[0K{$task->getName()}");
+        } else {
             $this->output->writeln("<fg=cyan;options=bold>task</> {$task->getName()}");
-            $this->logger->log("task {$task->getName()}");
         }
+        $this->logger->log("task {$task->getName()}");
     }
 
     /*
      * Print task was ok.
      */
-    public function endTask(Task $task): void
+    public function endTask(Task $task, bool $error = false): void
     {
-        if ($task->isShallow()) {
-            return;
-        }
         if (empty($this->startTime)) {
             $this->startTime = round(microtime(true) * 1000);
         }
@@ -61,8 +78,18 @@ class Messenger
         $millis = $millis - $seconds * 1000;
         $taskTime = ($seconds > 0 ? "{$seconds}s " : "") . "{$millis}ms";
 
-        if ($this->output->isVeryVerbose()) {
+        if (getenv('GITHUB_WORKFLOW')) {
+            $this->output->writeln("::endgroup::");
+        } elseif (getenv('GITLAB_CI')) {
+            $sectionId = md5($task->getName());
+            $endTime = round($endTime / 1000);
+            $this->output->writeln("\e[0Ksection_end:{$endTime}:{$sectionId}\r\e[0K");
+        } elseif ($this->output->isVeryVerbose()) {
             $this->output->writeln("<fg=yellow;options=bold>done</> {$task->getName()} $taskTime");
+        }
+        if ($error) {
+            $this->output->writeln("\e[0K\e[31;1mERROR: Task {$task->getName()} failed!\e[0;m");
+            return;
         }
         $this->logger->log("done {$task->getName()} $taskTime");
 

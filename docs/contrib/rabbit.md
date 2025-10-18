@@ -2,38 +2,33 @@
 <!-- Instead edit contrib/rabbit.php -->
 <!-- Then run bin/docgen -->
 
-# rabbit
+# Rabbit Recipe
+
+```php
+require 'contrib/rabbit.php';
+```
 
 [Source](/contrib/rabbit.php)
 
 
-### Installing
 
+### Installing
 ```php
 deploy.php
-
 require 'recipe/rabbit.php';
 ```
-
 ### Configuration options
-
 - **rabbit** *(required)*: accepts an *array* with the connection information to [rabbitmq](http://www.rabbitmq.com) server token and team name.
-
-
 You can provide also other configuration options:
-
  - *host* - default is localhost
  - *port* - default is 5672
  - *username* - default is *guest*
  - *password* - default is *guest*
  - *channel* - no default value, need to be specified via config
- - *message* - default is **Deployment to '{$host}' on *{$prod}* was successful\n($releasePath)**
+ - *message* - default is **Deployment to '$host' on *$prod* was successful\n$releasePath**
  - *vhost* - default is
-
-
 ```php
 deploy.php
-
 set('rabbit', [
     'host'     => 'localhost',
     'port'     => '5672',
@@ -43,25 +38,22 @@ set('rabbit', [
     'vhost'    => '/my-app'
 ]);
 ```
-
 ### Suggested Usage
-
 Since you should only notify RabbitMQ channel of a successful deployment, the `deploy:rabbit` task should be executed right at the end.
-
 ```php
 deploy.php
-
 before('deploy:end', 'deploy:rabbit');
 ```
 
 
-* Tasks
-  * [`deploy:rabbit`](#deployrabbit) — Notifying RabbitMQ channel about deployment
-
 
 ## Tasks
-### deploy:rabbit
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Arabbit%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arabbit.php)
+
+### deploy\:rabbit {#deploy-rabbit}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rabbit.php#L58)
+
+Notifies RabbitMQ channel about deployment.
+
 
 
 

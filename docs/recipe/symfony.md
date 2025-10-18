@@ -2,91 +2,201 @@
 <!-- Instead edit recipe/symfony.php -->
 <!-- Then run bin/docgen -->
 
-# symfony
+# How to Deploy a Symfony Application
+
+```php
+require 'recipe/symfony.php';
+```
 
 [Source](/recipe/symfony.php)
 
+Deployer is a free and open source deployment tool written in PHP. 
+It helps you to deploy your Symfony application to a server. 
+It is very easy to use and has a lot of features. 
+
+Three main features of Deployer are:
+- **Provisioning** - provision your server for you.
+- **Zero downtime deployment** - deploy your application without a downtime.
+- **Rollbacks** - rollback your application to a previous version, if something goes wrong.
+
+Additionally, Deployer has a lot of other features, like:
+- **Easy to use** - Deployer is very easy to use. It has a simple and intuitive syntax.
+- **Fast** - Deployer is very fast. It uses parallel connections to deploy your application.
+- **Secure** - Deployer uses SSH to connect to your server.
+- **Supports all major PHP frameworks** - Deployer supports all major PHP frameworks.
+
+You can read more about Deployer in [Getting Started](/docs/getting-started.md).
+
+The [deploy](#deploy) task of **Symfony** consists of:
+* [deploy:prepare](/docs/recipe/common.md#deploy-prepare) – Prepares a new release
+  * [deploy:info](/docs/recipe/deploy/info.md#deploy-info) – Displays info about deployment
+  * [deploy:setup](/docs/recipe/deploy/setup.md#deploy-setup) – Prepares host for deploy
+  * [deploy:lock](/docs/recipe/deploy/lock.md#deploy-lock) – Locks deploy
+  * [deploy:release](/docs/recipe/deploy/release.md#deploy-release) – Prepares release
+  * [deploy:update_code](/docs/recipe/deploy/update_code.md#deploy-update_code) – Updates code
+  * [deploy:env](/docs/recipe/deploy/env.md#deploy-env) – Configure .env file
+  * [deploy:shared](/docs/recipe/deploy/shared.md#deploy-shared) – Creates symlinks for shared files and dirs
+  * [deploy:writable](/docs/recipe/deploy/writable.md#deploy-writable) – Makes writable dirs
+* [deploy:vendors](/docs/recipe/deploy/vendors.md#deploy-vendors) – Installs vendors
+* [deploy:cache:clear](/docs/recipe/symfony.md#deploy-cache-clear) – Clears cache
+* [deploy:publish](/docs/recipe/common.md#deploy-publish) – Publishes the release
+  * [deploy:symlink](/docs/recipe/deploy/symlink.md#deploy-symlink) – Creates symlink to release
+  * [deploy:unlock](/docs/recipe/deploy/lock.md#deploy-unlock) – Unlocks deploy
+  * [deploy:cleanup](/docs/recipe/deploy/cleanup.md#deploy-cleanup) – Cleanup old releases
+  * [deploy:success](/docs/recipe/common.md#deploy-success) – Deploys your project
 
 
-* Require
-  * [`recipe/common.php`](/docs/recipe/common.md)
-* Config
-  * [`symfony_version`](#symfony_version)
-  * [`shared_dirs`](#shared_dirs)
-  * [`shared_files`](#shared_files)
-  * [`writable_dirs`](#writable_dirs)
-  * [`migrations_config`](#migrations_config)
-  * [`console_options`](#console_options)
-* Tasks
-  * [`database:migrate`](#databasemigrate) — Migrate database
-  * [`deploy:cache:clear`](#deploycacheclear) — Clear cache
-  * [`deploy:cache:warmup`](#deploycachewarmup) — Warm up cache
-  * [`deploy`](#deploy) — Deploy project
+The symfony recipe is based on the [common](/docs/recipe/common.md) recipe.
 
-## Config
+## Configuration
 ### symfony_version
-[Source](https://github.com/deployphp/deployer/search?q=%22symfony_version%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Asymfony.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/symfony.php#L9)
 
+
+
+```php title="Default value"
+$result = run('{{bin/console}} --version');
+preg_match_all('/(\d+\.?)+/', $result, $matches);
+return $matches[0][0] ?? 5.0;
+```
 
 
 ### shared_dirs
-[Source](https://github.com/deployphp/deployer/search?q=%22shared_dirs%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Asymfony.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/symfony.php#L15)
 
-* Overrides [`shared_dirs`](/docs/recipe/common.md#shared_dirs) from `recipe/common.php`
+Overrides [shared_dirs](/docs/recipe/deploy/shared.md#shared_dirs) from `recipe/deploy/shared.php`.
 
+
+
+```php title="Default value"
+[
+    'var/log',
+]
+```
 
 
 ### shared_files
-[Source](https://github.com/deployphp/deployer/search?q=%22shared_files%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Asymfony.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/symfony.php#L19)
 
-* Overrides [`shared_files`](/docs/recipe/common.md#shared_files) from `recipe/common.php`
+Overrides [shared_files](/docs/recipe/deploy/shared.md#shared_files) from `recipe/deploy/shared.php`.
 
+
+
+```php title="Default value"
+[
+    '.env.local',
+]
+```
 
 
 ### writable_dirs
-[Source](https://github.com/deployphp/deployer/search?q=%22writable_dirs%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Asymfony.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/symfony.php#L23)
 
-* Overrides [`writable_dirs`](/docs/recipe/deploy/writable.md#writable_dirs) from `recipe/deploy/writable.php`
+Overrides [writable_dirs](/docs/recipe/deploy/writable.md#writable_dirs) from `recipe/deploy/writable.php`.
 
+
+
+```php title="Default value"
+[
+    'var',
+    'var/cache',
+    'var/log',
+    'var/sessions',
+]
+```
+
+
+### log_files
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/symfony.php#L30)
+
+
+
+```php title="Default value"
+'var/log/*.log'
+```
 
 
 ### migrations_config
-[Source](https://github.com/deployphp/deployer/search?q=%22migrations_config%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Asymfony.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/symfony.php#L32)
 
+
+
+
+
+### doctrine_schema_validate_config
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/symfony.php#L34)
+
+
+
+
+
+### bin/console
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/symfony.php#L36)
+
+
+
+```php title="Default value"
+'{{bin/php}} {{release_or_current_path}}/bin/console'
+```
 
 
 ### console_options
-[Source](https://github.com/deployphp/deployer/search?q=%22console_options%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Asymfony.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/symfony.php#L38)
 
+
+
+```php title="Default value"
+return '--no-interaction';
+```
 
 
 
 ## Tasks
-### database:migrate
-[Source](https://github.com/deployphp/deployer/search?q=%22database%3Amigrate%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Asymfony.php)
+
+### database\:migrate {#database-migrate}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/symfony.php#L43)
+
+Migrates database.
 
 
 
-### deploy:cache:clear
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Acache%3Aclear%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Asymfony.php)
+
+### doctrine\:schema\:validate {#doctrine-schema-validate}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/symfony.php#L53)
+
+Validate the Doctrine mapping files.
 
 
 
-### deploy:cache:warmup
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Acache%3Awarmup%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Asymfony.php)
+
+### deploy\:cache\:clear {#deploy-cache-clear}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/symfony.php#L58)
+
+Clears cache.
 
 
 
-### deploy
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%22+in%3Afile+language%3Aphp+path%3Arecipe+filename%3Asymfony.php)
+
+### deploy\:dump-env {#deploy-dump-env}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/symfony.php#L67)
+
+Optimize environment variables.
+
+
+
+
+### deploy {#deploy}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/symfony.php#L74)
+
+Deploys project.
+
 
 
 
 This task is group task which contains next tasks:
-* [`deploy:prepare`](/docs/recipe/common.md#deployprepare)
-* [`deploy:vendors`](/docs/recipe/deploy/vendors.md#deployvendors)
-* [`deploy:cache:clear`](/docs/recipe/symfony.md#deploycacheclear)
-* [`deploy:cache:warmup`](/docs/recipe/symfony.md#deploycachewarmup)
-* [`deploy:publish`](/docs/recipe/common.md#deploypublish)
+* [deploy:prepare](/docs/recipe/common.md#deploy-prepare)
+* [deploy:vendors](/docs/recipe/deploy/vendors.md#deploy-vendors)
+* [deploy:cache:clear](/docs/recipe/symfony.md#deploy-cache-clear)
+* [deploy:publish](/docs/recipe/common.md#deploy-publish)
 
 

@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /* (c) Anton Medvedev <anton@medv.io>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -7,8 +10,12 @@
 
 namespace Deployer\Importer;
 
+use Deployer\Exception\ConfigurationException;
 use Deployer\Exception\Exception;
 use Symfony\Component\Yaml\Yaml;
+
+use function array_filter;
+use function array_keys;
 use function Deployer\after;
 use function Deployer\before;
 use function Deployer\cd;
@@ -16,14 +23,23 @@ use function Deployer\download;
 use function Deployer\host;
 use function Deployer\localhost;
 use function Deployer\run;
+use function Deployer\runLocally;
 use function Deployer\set;
 use function Deployer\Support\find_line_number;
 use function Deployer\task;
 use function Deployer\upload;
 
+use const ARRAY_FILTER_USE_KEY;
+
 class Importer
 {
+    /**
+     * @var string
+     */
     private static $recipeFilename;
+    /**
+     * @var string
+     */
     private static $recipeSource;
 
     /**
@@ -51,16 +67,16 @@ class Importer
                         }
                     }
                 });
-            } else if (preg_match('/\.ya?ml$/i', $path)) {
+            } elseif (preg_match('/\.ya?ml$/i', $path)) {
                 self::$recipeFilename = basename($path);
-                self::$recipeSource = file_get_contents($path);
-                $root = Yaml::parse(self::$recipeSource);
+                self::$recipeSource = file_get_contents($path, true);
+
+                $root = array_filter(Yaml::parse(self::$recipeSource), static function (string $key) {
+                    return !str_starts_with($key, '.');
+                }, ARRAY_FILTER_USE_KEY);
+
                 foreach (array_keys($root) as $key) {
-                    try {
-                        self::$key($root[$key]);
-                    } catch (\Throwable $exception) {
-                        throw new Exception("Wrong syntax in \"$key:\" section.", 0, $exception);
-                    }
+                    static::$key($root[$key]);
                 }
             } else {
                 throw new Exception("Unknown file format: $path\nOnly .php and .yaml supported.");
@@ -93,83 +109,95 @@ class Importer
 
     protected static function tasks(array $tasks)
     {
-        $buildTask = function ($name, $config) {
-            extract($config);
-
-            $body = null;
-            if (isset($script)) {
-                if (!is_string($script)) {
-                    foreach ($script as $line) {
-                        if (!is_string($line)) {
-                            throw new Exception("Script should be a string: $line");
-                        }
-                    }
-                }
-                $wrapRun = function ($cmd) {
-                    try {
-                        run($cmd);
-                    } catch (Exception $e) {
-                        $e->setTaskFilename(self::$recipeFilename);
-                        $e->setTaskLineNumber(find_line_number(self::$recipeSource, $cmd));
-                        throw $e;
-                    }
-                };
-                $body = function () use ($wrapRun, $script) {
-                    if (is_string($script)) {
-                        $wrapRun($script);
-                    } else {
-                        foreach ($script as $line) {
-                            $containsMultipleCommands = preg_match('/\s&&\s/', $line);
-                            $startsWithCd = preg_match('/^cd\s(?<path>.+)/i', $line, $matches);
-
-                            if ($startsWithCd && ! $containsMultipleCommands) {
-                                cd($matches['path']);
-                            } else {
-                                $wrapRun($line);
-                            }
-                        }
-                    }
-                };
-            }
-            if (isset($upload)) {
-                if (!isset($upload['src']) || !isset($upload['dest'])) {
-                    throw new Exception("Upload should have `src:` and `dest:` fields");
-                }
-                $prev = $body;
-                $body = function () use ($upload, $prev) {
-                    upload($upload['src'], $upload['dest']);
-                    if (!empty($prev)) {
-                        $prev();
-                    }
-                };
-            }
-            if (isset($download)) {
-                if (!isset($download['src']) || !isset($download['dest'])) {
-                    throw new Exception("Download should have `src:` and `dest:` fields");
-                }
-                $prev = $body;
-                $body = function () use ($download, $prev) {
-                    download($download['src'], $download['dest']);
-                    if (!empty($prev)) {
-                        $prev();
-                    }
-                };
-            }
-
+        $buildTask = function ($name, $steps) {
+            $body = function () {};
             $task = task($name, $body);
-            $methods = [
-                'desc',
-                'local',
-                'once',
-                'hidden',
-                'shallow',
-                'limit',
-                'select',
-            ];
-            foreach ($methods as $method) {
-                if (isset($$method)) {
-                    $task->$method($$method);
-                }
+
+            foreach ($steps as $step) {
+                $buildStep = function ($step) use (&$body, $task) {
+                    extract($step);
+
+                    if (isset($cd)) {
+                        $prev = $body;
+                        $body = function () use ($cd, $prev) {
+                            $prev();
+                            cd($cd);
+                        };
+                    }
+
+                    if (isset($run)) {
+                        $has = 'run';
+                        $prev = $body;
+                        $body = function () use ($run, $prev) {
+                            $prev();
+                            try {
+                                run($run);
+                            } catch (Exception $e) {
+                                $e->setTaskFilename(self::$recipeFilename);
+                                $e->setTaskLineNumber(find_line_number(self::$recipeSource, $run));
+                                throw $e;
+                            }
+                        };
+                    }
+
+                    if (isset($run_locally)) {
+                        if (isset($has)) {
+                            throw new ConfigurationException("Task step can not have both $has and run_locally.");
+                        }
+                        $has = 'run_locally';
+                        $prev = $body;
+                        $body = function () use ($run_locally, $prev) {
+                            $prev();
+                            try {
+                                runLocally($run_locally);
+                            } catch (Exception $e) {
+                                $e->setTaskFilename(self::$recipeFilename);
+                                $e->setTaskLineNumber(find_line_number(self::$recipeSource, $run_locally));
+                                throw $e;
+                            }
+                        };
+                    }
+
+                    if (isset($upload)) {
+                        if (isset($has)) {
+                            throw new ConfigurationException("Task step can not have both $has and upload.");
+                        }
+                        $has = 'upload';
+                        $prev = $body;
+                        $body = function () use ($upload, $prev) {
+                            $prev();
+                            upload($upload['src'], $upload['dest']);
+                        };
+                    }
+
+                    if (isset($download)) {
+                        if (isset($has)) {
+                            throw new ConfigurationException("Task step can not have both $has and download.");
+                        }
+                        $has = 'download';
+                        $prev = $body;
+                        $body = function () use ($download, $prev) {
+                            $prev();
+                            download($download['src'], $download['dest']);
+                        };
+                    }
+
+                    $methods = [
+                        'desc',
+                        'once',
+                        'hidden',
+                        'limit',
+                        'select',
+                    ];
+                    foreach ($methods as $method) {
+                        if (isset($$method)) {
+                            $task->$method($$method);
+                        }
+                    }
+                };
+
+                $buildStep($step);
+                $task->setCallback($body);
             }
         };
 

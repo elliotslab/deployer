@@ -15,7 +15,7 @@ set('bin/composer', function () {
     }
 
     if (commandExist('composer')) {
-        return '{{bin/php}} ' . locateBinaryPath('composer');
+        return '{{bin/php}} ' . which('composer');
     }
 
     warning("Composer binary wasn't found. Installing latest composer to \"{{deploy_path}}/.dep/composer.phar\".");
@@ -24,7 +24,7 @@ set('bin/composer', function () {
     return '{{bin/php}} {{deploy_path}}/.dep/composer.phar';
 });
 
-desc('Installing vendors');
+desc('Installs vendors');
 task('deploy:vendors', function () {
     if (!commandExist('unzip')) {
         warning('To speed up composer installation setup "unzip" command with PHP zip extension.');

@@ -2,174 +2,213 @@
 <!-- Instead edit contrib/rocketchat.php -->
 <!-- Then run bin/docgen -->
 
-# rocketchat
-
-[Source](/contrib/rocketchat.php)
-
-
-## Installing
-
-Create a RocketChat incoming webhook, through the administration panel.
-
-Require the new recipe into your `deploy.php`
+# Rocketchat Recipe
 
 ```php
 require 'contrib/rocketchat.php';
 ```
 
-Add hook on deploy:
+[Source](/contrib/rocketchat.php)
 
+
+
+## Installing
+Create a RocketChat incoming webhook, through the administration panel.
+Add hook on deploy:
 ```
 before('deploy', 'rocketchat:notify');
 ```
-
 ## Configuration
-
  - `rocketchat_webhook` - incoming rocketchat webook **required**
    ```
-   set('rocketchat_webook', 'https://rocketchat.yourcompany.com/hooks/XXXXX');
+   set('rocketchat_webhook', 'https://rocketchat.yourcompany.com/hooks/XXXXX');
    ```
-
  - `rocketchat_title` - the title of the application, defaults to `{{application}}`
  - `rocketchat_text` - notification message
    ```
-   set('rocketchat_text', '_{{user}}_ deploying {{branch}} to {{target}}');
+   set('rocketchat_text', '_{{user}}_ deploying {{what}} to {{where}}');
    ```
-
  - `rocketchat_success_text` – success template, default:
   ```
-  set('rocketchat_success_text', 'Deploy to *{{target}}* successful');
+  set('rocketchat_success_text', 'Deploy to *{{where}}* successful');
   ```
  - `rocketchat_failure_text` – failure template, default:
   ```
-  set('rocketchat_failure_text', 'Deploy to *{{target}}* failed');
+  set('rocketchat_failure_text', 'Deploy to *{{where}}* failed');
   ```
-
  - `rocketchat_color` – color's attachment
  - `rocketchat_success_color` – success color's attachment
  - `rocketchat_failure_color` – failure color's attachment
-
 ## Usage
-
 If you want to notify only about beginning of deployment add this line only:
-
 ```php
 before('deploy', 'rocketchat:notify');
 ```
-
 If you want to notify about successful end of deployment add this too:
-
 ```php
 after('deploy:success', 'rocketchat:notify:success');
 ```
-
 If you want to notify about failed deployment add this too:
-
 ```php
 after('deploy:failed', 'rocketchat:notify:failure');
 ```
 
 
-
-* Config
-  * [`rockchat_title`](#rockchat_title)
-  * [`rocketchat_icon_emoji`](#rocketchat_icon_emoji)
-  * [`rocketchat_icon_url`](#rocketchat_icon_url)
-  * [`rocketchat_channel`](#rocketchat_channel)
-  * [`rocketchat_room_id`](#rocketchat_room_id)
-  * [`rocketchat_username`](#rocketchat_username)
-  * [`rocketchat_webhook`](#rocketchat_webhook)
-  * [`rocketchat_color`](#rocketchat_color)
-  * [`rocketchat_success_color`](#rocketchat_success_color)
-  * [`rocketchat_failure_color`](#rocketchat_failure_color)
-  * [`rocketchat_text`](#rocketchat_text)
-  * [`rocketchat_success_text`](#rocketchat_success_text)
-  * [`rocketchat_failure_text`](#rocketchat_failure_text)
-* Tasks
-  * [`rocketchat:notify`](#rocketchatnotify) — Notify RocketChat
-  * [`rocketchat:notify:success`](#rocketchatnotifysuccess) — Notifying RocketChat about deploy finish
-  * [`rocketchat:notify:failure`](#rocketchatnotifyfailure) — Notifying RocketChat about deploy failure
-
-## Config
+## Configuration
 ### rockchat_title
-[Source](https://github.com/deployphp/deployer/search?q=%22rockchat_title%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L65)
 
+
+
+```php title="Default value"
+return get('application', 'Project');
+```
 
 
 ### rocketchat_icon_emoji
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat_icon_emoji%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L69)
 
+
+
+```php title="Default value"
+':robot:'
+```
 
 
 ### rocketchat_icon_url
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat_icon_url%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L70)
 
+
+
+```php title="Default value"
+null
+```
 
 
 ### rocketchat_channel
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat_channel%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L72)
 
+
+
+```php title="Default value"
+null
+```
 
 
 ### rocketchat_room_id
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat_room_id%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L73)
 
+
+
+```php title="Default value"
+null
+```
 
 
 ### rocketchat_username
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat_username%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L74)
 
+
+
+```php title="Default value"
+null
+```
 
 
 ### rocketchat_webhook
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat_webhook%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L75)
 
+
+
+```php title="Default value"
+null
+```
 
 
 ### rocketchat_color
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat_color%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L77)
 
+
+
+```php title="Default value"
+'#000000'
+```
 
 
 ### rocketchat_success_color
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat_success_color%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L78)
 
+
+
+```php title="Default value"
+'#00c100'
+```
 
 
 ### rocketchat_failure_color
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat_failure_color%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L79)
 
+
+
+```php title="Default value"
+'#ff0909'
+```
 
 
 ### rocketchat_text
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat_text%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L81)
 
+
+
+```php title="Default value"
+'_{{user}}_ deploying `{{what}}` to *{{where}}*'
+```
 
 
 ### rocketchat_success_text
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat_success_text%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L82)
 
+
+
+```php title="Default value"
+'Deploy to *{{where}}* successful'
+```
 
 
 ### rocketchat_failure_text
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat_failure_text%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L83)
 
+
+
+```php title="Default value"
+'Deploy to *{{where}}* failed'
+```
 
 
 
 ## Tasks
-### rocketchat:notify
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat%3Anotify%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+
+### rocketchat\:notify {#rocketchat-notify}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L86)
+
+Notifies RocketChat.
 
 
 
-### rocketchat:notify:success
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat%3Anotify%3Asuccess%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+
+### rocketchat\:notify\:success {#rocketchat-notify-success}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L116)
+
+Notifies RocketChat about deploy finish.
 
 
 
-### rocketchat:notify:failure
-[Source](https://github.com/deployphp/deployer/search?q=%22rocketchat%3Anotify%3Afailure%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Arocketchat.php)
+
+### rocketchat\:notify\:failure {#rocketchat-notify-failure}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/rocketchat.php#L146)
+
+Notifies RocketChat about deploy failure.
+
 
 
 

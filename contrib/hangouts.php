@@ -1,10 +1,5 @@
 <?php
 /*
-Require the Google Hangouts Chat recipe in your `deploy.php` file:
-
-```php
-require 'contrib/chat.php';
-```
 
 Add hook on deploy:
 
@@ -42,6 +37,7 @@ after('deploy:failed', 'chat:notify:failure');
 ```
 
  */
+
 namespace Deployer;
 
 use Deployer\Utility\Httpie;
@@ -60,7 +56,7 @@ set('favicon', 'http://{{hostname}}/favicon.png');
 set('chat_line1', '{{branch}}');
 set('chat_line2', '{{stage}}');
 
-desc('Notifying Google Hangouts Chat');
+desc('Notifies Google Hangouts Chat');
 task('chat:notify', function () {
     if (!get('chat_webhook', false)) {
         return;
@@ -68,42 +64,41 @@ task('chat:notify', function () {
 
     $card = [
         'header' => [
-            'title'      => get('chat_title'),
-            'subtitle'   => get('chat_subtitle'),
-            'imageUrl'   => get('favicon'),
-            'imageStyle' => 'IMAGE'
+            'title' => get('chat_title'),
+            'subtitle' => get('chat_subtitle'),
+            'imageUrl' => get('favicon'),
+            'imageStyle' => 'IMAGE',
         ],
         'sections' => [
             'widgets' => [
                 'keyValue' => [
-                    'topLabel'         => get('chat_line1'),
-                    'content'          => get('chat_line2'),
+                    'topLabel' => get('chat_line1'),
+                    'content' => get('chat_line2'),
                     'contentMultiline' => false,
-                    'bottomLabel'      => 'started',
+                    'bottomLabel' => 'started',
                     // Use 'iconUrl' to set a custom icon URL (png)
-                    'icon'             => 'CLOCK',
-                    'button'           => [
+                    'icon' => 'CLOCK',
+                    'button' => [
                         'textButton' => [
-                            'text'    => 'Visit site',
+                            'text' => 'Visit site',
                             'onClick' => [
                                 'openLink' => [
-                                    'url' => get('hostname')
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ]
+                                    'url' => get('hostname'),
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
     ];
 
-    Httpie::post(get('chat_webhook'))->body(['cards' => $card])->send();
+    Httpie::post(get('chat_webhook'))->jsonBody(['cards' => $card])->send();
 })
     ->once()
-    ->shallow()
     ->hidden();
 
-desc('Notifying Google Hangouts Chat about deploy finish');
+desc('Notifies Google Hangouts Chat about deploy finish');
 task('chat:notify:success', function () {
     if (!get('chat_webhook', false)) {
         return;
@@ -111,42 +106,41 @@ task('chat:notify:success', function () {
 
     $card = [
         'header' => [
-            'title'      => get('chat_title'),
-            'subtitle'   => get('chat_subtitle'),
-            'imageUrl'   => get('favicon'),
-            'imageStyle' => 'IMAGE'
+            'title' => get('chat_title'),
+            'subtitle' => get('chat_subtitle'),
+            'imageUrl' => get('favicon'),
+            'imageStyle' => 'IMAGE',
         ],
         'sections' => [
             'widgets' => [
                 'keyValue' => [
-                    'topLabel'         => get('chat_line1'),
-                    'content'          => get('chat_line2'),
+                    'topLabel' => get('chat_line1'),
+                    'content' => get('chat_line2'),
                     'contentMultiline' => false,
-                    'bottomLabel'      => 'succeeded',
+                    'bottomLabel' => 'succeeded',
                     // Use 'iconUrl' to set a custom icon URL (png)
-                    'icon'             => 'STAR',
-                    'button'           => [
+                    'icon' => 'STAR',
+                    'button' => [
                         'textButton' => [
-                            'text'    => 'Visit site',
+                            'text' => 'Visit site',
                             'onClick' => [
                                 'openLink' => [
-                                    'url' => get('hostname')
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ]
+                                    'url' => get('hostname'),
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
     ];
 
-    Httpie::post(get('chat_webhook'))->body(['cards' => $card])->send();
+    Httpie::post(get('chat_webhook'))->jsonBody(['cards' => $card])->send();
 })
     ->once()
-    ->shallow()
     ->hidden();
 
-    desc('Notifying Google Hangouts Chat about deploy failure');
+desc('Notifies Google Hangouts Chat about deploy failure');
 task('chat:notify:failure', function () {
     if (!get('chat_webhook', false)) {
         return;
@@ -154,38 +148,37 @@ task('chat:notify:failure', function () {
 
     $card = [
         'header' => [
-            'title'      => get('chat_title'),
-            'subtitle'   => get('chat_subtitle'),
-            'imageUrl'   => get('favicon'),
-            'imageStyle' => 'IMAGE'
+            'title' => get('chat_title'),
+            'subtitle' => get('chat_subtitle'),
+            'imageUrl' => get('favicon'),
+            'imageStyle' => 'IMAGE',
         ],
         'sections' => [
             'widgets' => [
                 'keyValue' => [
-                    'topLabel'         => get('chat_line1'),
-                    'content'          => get('chat_line2'),
+                    'topLabel' => get('chat_line1'),
+                    'content' => get('chat_line2'),
                     'contentMultiline' => false,
-                    'bottomLabel'      => 'failed',
+                    'bottomLabel' => 'failed',
                     // Use 'iconUrl' to set a custom icon URL (png)
                     // or use 'icon' and pick from this list:
                     // https://developers.google.com/hangouts/chat/reference/message-formats/cards#customicons
-                    'button'           => [
+                    'button' => [
                         'textButton' => [
-                            'text'    => 'Visit site',
+                            'text' => 'Visit site',
                             'onClick' => [
                                 'openLink' => [
-                                    'url' => get('hostname')
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ]
+                                    'url' => get('hostname'),
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
     ];
 
-    Httpie::post(get('chat_webhook'))->body(['cards' => $card])->send();
+    Httpie::post(get('chat_webhook'))->jsonBody(['cards' => $card])->send();
 })
     ->once()
-    ->shallow()
     ->hidden();

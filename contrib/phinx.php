@@ -1,12 +1,5 @@
 <?php
 /*
-## Installing
-
-Add to your _deploy.php_
-
-```php
-require 'contrib/phinx.php';
-```
 
 ## Configuration options
 
@@ -63,6 +56,7 @@ to run it after the `deploy:update_code` task is completed.
 For further reading see [phinx.org](https://phinx.org). Complete descriptions of all possible options can be found on the [commands page](http://docs.phinx.org/en/latest/commands.html).
 
  */
+
 namespace Deployer;
 
 use Deployer\Exception\RunException;
@@ -86,22 +80,21 @@ use Deployer\Exception\RunException;
  */
 set('bin/phinx', function () {
     try {
-        $phinxPath = locateBinaryPath('phinx');
+        $phinxPath = which('phinx');
     } catch (RunException $e) {
         $phinxPath = null;
     }
 
     if ($phinxPath !== null) {
         return "phinx";
-    } else if (test('[ -f {{release_path}}/vendor/bin/phinx ]')) {
+    } elseif (test('[ -f {{release_path}}/vendor/bin/phinx ]')) {
         return "{{release_path}}/vendor/bin/phinx";
-    } else if (test('[ -f ~/.composer/vendor/bin/phinx ]')) {
+    } elseif (test('[ -f ~/.composer/vendor/bin/phinx ]')) {
         return '~/.composer/vendor/bin/phinx';
     } else {
         throw new \RuntimeException('Cannot find phinx. Please specify path to phinx manually');
     }
-}
-);
+});
 
 /**
  * Make Phinx command
@@ -111,7 +104,8 @@ set('bin/phinx', function () {
  *
  * @return string Phinx command to execute
  */
-function phinx_get_cmd($cmdName, $conf) {
+function phinx_get_cmd($cmdName, $conf)
+{
     $phinx = get('phinx_path') ?: get('bin/phinx');
 
     $phinxCmd = "$phinx $cmdName";
@@ -134,7 +128,8 @@ function phinx_get_cmd($cmdName, $conf) {
  *
  * @return array Array of options
  */
-function phinx_get_allowed_config($allowedOptions) {
+function phinx_get_allowed_config($allowedOptions)
+{
     $opts = [];
 
     try {
@@ -150,14 +145,14 @@ function phinx_get_allowed_config($allowedOptions) {
 }
 
 
-desc('Migrating database with phinx');
+desc('Migrats database with phinx');
 task('phinx:migrate', function () {
     $ALLOWED_OPTIONS = [
         'configuration',
         'date',
         'environment',
         'target',
-        'parser'
+        'parser',
     ];
 
     $conf = phinx_get_allowed_config($ALLOWED_OPTIONS);
@@ -169,17 +164,16 @@ task('phinx:migrate', function () {
     run($phinxCmd);
 
     cd('{{deploy_path}}');
-}
-);
+});
 
-desc('Rollback database migrations with phinx');
+desc('Rollbacks database migrations with phinx');
 task('phinx:rollback', function () {
     $ALLOWED_OPTIONS = [
         'configuration',
         'date',
         'environment',
         'target',
-        'parser'
+        'parser',
     ];
 
     $conf = phinx_get_allowed_config($ALLOWED_OPTIONS);
@@ -191,16 +185,15 @@ task('phinx:rollback', function () {
     run($phinxCmd);
 
     cd('{{deploy_path}}');
-}
-);
+});
 
-desc('Seed database with phinx');
+desc('Seeds database with phinx');
 task('phinx:seed', function () {
     $ALLOWED_OPTIONS = [
         'configuration',
         'environment',
         'parser',
-        'seed'
+        'seed',
     ];
 
     $conf = phinx_get_allowed_config($ALLOWED_OPTIONS);
@@ -212,16 +205,15 @@ task('phinx:seed', function () {
     run($phinxCmd);
 
     cd('{{deploy_path}}');
-}
-);
+});
 
-desc('Set a migrations breakpoint with phinx');
+desc('Sets a migrations breakpoint with phinx');
 task('phinx:breakpoint', function () {
     $ALLOWED_OPTIONS = [
         'configuration',
         'environment',
         'remove-all',
-        'target'
+        'target',
     ];
 
     $conf = phinx_get_allowed_config($ALLOWED_OPTIONS);
@@ -233,5 +225,4 @@ task('phinx:breakpoint', function () {
     run($phinxCmd);
 
     cd('{{deploy_path}}');
-}
-);
+});

@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /* (c) Anton Medvedev <anton@medv.io>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -14,6 +17,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface as Input;
 use Symfony\Component\Console\Input\InputOption as Option;
 use Symfony\Component\Console\Output\OutputInterface as Output;
+
 use function Deployer\cd;
 use function Deployer\get;
 use function Deployer\has;
@@ -35,20 +39,20 @@ class RunCommand extends SelectCommand
         $this->addArgument(
             'command-to-run',
             InputArgument::REQUIRED,
-            'Command to run on a remote host'
+            'Command to run on a remote host',
         );
         parent::configure();
         $this->addOption(
             'option',
             'o',
             Option::VALUE_REQUIRED | Option::VALUE_IS_ARRAY,
-            'Set configuration option'
+            'Set configuration option',
         );
         $this->addOption(
             'timeout',
             't',
             Option::VALUE_REQUIRED,
-            'Command timeout in seconds'
+            'Command timeout in seconds',
         );
     }
 
@@ -68,15 +72,16 @@ class RunCommand extends SelectCommand
                     cd($path);
                 }
             }
-            run($command, [
-                'real_time_output' => true,
-                'timeout' => intval($input->getOption('timeout')),
-            ]);
+            run(
+                $command,
+                timeout: intval($input->getOption('timeout')),
+                forceOutput: true,
+            );
         });
 
         foreach ($hosts as $host) {
             try {
-                $task->run(new Context($host, $input, $output));
+                $task->run(new Context($host));
             } catch (\Throwable $exception) {
                 $this->deployer->messenger->renderException($exception, $host);
             }

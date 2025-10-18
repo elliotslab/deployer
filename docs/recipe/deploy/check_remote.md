@@ -2,20 +2,24 @@
 <!-- Instead edit recipe/deploy/check_remote.php -->
 <!-- Then run bin/docgen -->
 
-# check_remote
+# Check Remote Recipe
+
+```php
+require 'recipe/deploy/check_remote.php';
+```
 
 [Source](/recipe/deploy/check_remote.php)
 
 
 
-* Tasks
-  * [`deploy:check_remote`](#deploycheck_remote) — Check remote head
-
-
 ## Tasks
-### deploy:check_remote
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Acheck_remote%22+in%3Afile+language%3Aphp+path%3Arecipe%2Fdeploy+filename%3Acheck_remote.php)
+
+### deploy\:check_remote {#deploy-check_remote}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/check_remote.php#L11)
+
+Checks remote head.
 
 Cancel deployment if there would be no change to the codebase.
 This avoids unnecessary releases if the latest commit has already been deployed.
+
 

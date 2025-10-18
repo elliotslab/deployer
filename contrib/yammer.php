@@ -1,14 +1,5 @@
 <?php
 /*
-# Yammer recipe
-
-## Installing
-
-Require yammer recipe in your `deploy.php` file:
-
-```php
-require 'contrib/yammer.php';
-```
 
 Add hook on deploy:
 
@@ -24,15 +15,15 @@ before('deploy', 'yammer:notify');
 - `yammer_title` – the title of application, default `{{application}}`
 - `yammer_body` – notification message template, default:
   ```
-  <em>{{user}}</em> deploying {{branch}} to <strong>{{target}}</strong>
+  <em>{{user}}</em> deploying {{what}} to <strong>{{where}}</strong>
   ```
 - `yammer_success_body` – success template, default:
   ```
-  Deploy to <strong>{{target}}</strong> successful
+  Deploy to <strong>{{where}}</strong> successful
   ```
 - `yammer_failure_body` – failure template, default:
   ```
-  Deploy to <strong>{{target}}</strong> failed
+  Deploy to <strong>{{where}}</strong> failed
   ```
 
 ## Usage
@@ -56,6 +47,7 @@ after('deploy:failed', 'yammer:notify:failure');
 ```
 
  */
+
 namespace Deployer;
 
 use Deployer\Utility\Httpie;
@@ -68,11 +60,11 @@ set('yammer_title', function () {
 });
 
 // Deploy message
-set('yammer_body', '<em>{{user}}</em> deploying {{branch}} to <strong>{{target}}</strong>');
-set('yammer_success_body', 'Deploy to <strong>{{target}}</strong> successful');
-set('yammer_failure_body', 'Deploy to <strong>{{target}}</strong> failed');
+set('yammer_body', '<em>{{user}}</em> deploying {{what}} to <strong>{{where}}</strong>');
+set('yammer_success_body', 'Deploy to <strong>{{where}}</strong> successful');
+set('yammer_failure_body', 'Deploy to <strong>{{where}}</strong> failed');
 
-desc('Notifying Yammer');
+desc('Notifies Yammer');
 task('yammer:notify', function () {
     $params = [
         'is_rich_text' => 'true',
@@ -83,16 +75,15 @@ task('yammer:notify', function () {
     ];
 
     Httpie::post(get('yammer_url'))
-        ->header('Authorization: Bearer ' . get('yammer_token'))
-        ->header('Content-type: application/json')
-        ->body($params)
+        ->header('Authorization', 'Bearer ' . get('yammer_token'))
+        ->header('Content-type', 'application/json')
+        ->jsonBody($params)
         ->send();
 })
     ->once()
-    ->shallow()
     ->hidden();
 
-desc('Notifying Yammer about deploy finish');
+desc('Notifies Yammer about deploy finish');
 task('yammer:notify:success', function () {
     $params = [
         'is_rich_text' => 'true',
@@ -103,16 +94,15 @@ task('yammer:notify:success', function () {
     ];
 
     Httpie::post(get('yammer_url'))
-        ->header('Authorization: Bearer ' . get('yammer_token'))
-        ->header('Content-type: application/json')
-        ->body($params)
+        ->header('Authorization', 'Bearer ' . get('yammer_token'))
+        ->header('Content-type', 'application/json')
+        ->jsonBody($params)
         ->send();
 })
     ->once()
-    ->shallow()
     ->hidden();
 
-desc('Notifying Yammer about deploy failure');
+desc('Notifies Yammer about deploy failure');
 task('yammer:notify:failure', function () {
     $params = [
         'is_rich_text' => 'true',
@@ -123,11 +113,10 @@ task('yammer:notify:failure', function () {
     ];
 
     Httpie::post(get('yammer_url'))
-        ->header('Authorization: Bearer ' . get('yammer_token'))
-        ->header('Content-type: application/json')
-        ->body($params)
+        ->header('Authorization', 'Bearer ' . get('yammer_token'))
+        ->header('Content-type', 'application/json')
+        ->jsonBody($params)
         ->send();
 })
     ->once()
-    ->shallow()
     ->hidden();

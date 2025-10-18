@@ -2,27 +2,34 @@
 <!-- Instead edit recipe/deploy/cleanup.php -->
 <!-- Then run bin/docgen -->
 
-# cleanup
+# Cleanup Recipe
+
+```php
+require 'recipe/deploy/cleanup.php';
+```
 
 [Source](/recipe/deploy/cleanup.php)
 
 
-
-* Config
-  * [`cleanup_use_sudo`](#cleanup_use_sudo)
-* Tasks
-  * [`deploy:cleanup`](#deploycleanup) — Cleaning up old releases
-
-## Config
+## Configuration
 ### cleanup_use_sudo
-[Source](https://github.com/deployphp/deployer/search?q=%22cleanup_use_sudo%22+in%3Afile+language%3Aphp+path%3Arecipe%2Fdeploy+filename%3Acleanup.php)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/cleanup.php#L6)
 
 Use sudo in deploy:cleanup task for rm command.
 
+```php title="Default value"
+false
+```
+
+
 
 ## Tasks
-### deploy:cleanup
-[Source](https://github.com/deployphp/deployer/search?q=%22deploy%3Acleanup%22+in%3Afile+language%3Aphp+path%3Arecipe%2Fdeploy+filename%3Acleanup.php)
+
+### deploy\:cleanup {#deploy-cleanup}
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/deploy/cleanup.php#L9)
+
+Cleanup old releases.
+
 
 
 

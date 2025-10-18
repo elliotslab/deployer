@@ -2,33 +2,25 @@
 <!-- Instead edit contrib/cimonitor.php -->
 <!-- Then run bin/docgen -->
 
-# cimonitor
-
-[Source](/contrib/cimonitor.php)
-
-
-# CIMonitor recipe
-
-Monitor your deployments on [CIMonitor](https://github.com/CIMonitor/CIMonitor).
-
-![CIMonitorGif](https://www.steefmin.xyz/deployer-example.gif)
-
-Require cimonitor recipe in your `deploy.php` file:
+# Cimonitor Recipe
 
 ```php
 require 'contrib/cimonitor.php';
 ```
 
-Add tasks on deploy:
+[Source](/contrib/cimonitor.php)
 
+
+
+Monitor your deployments on [CIMonitor](https://github.com/CIMonitor/CIMonitor).
+![CIMonitorGif](https://www.steefmin.xyz/deployer-example.gif)
+Add tasks on deploy:
 ```php
 before('deploy', 'cimonitor:notify');
 after('deploy:success', 'cimonitor:notify:success');
 after('deploy:failed', 'cimonitor:notify:failure');
 ```
-
 ## Configuration
-
 - `cimonitor_webhook` – CIMonitor server webhook url, **required**
   ```
   set('cimonitor_webhook', 'https://cimonitor.enrise.com/webhook/deployer');
@@ -46,123 +38,172 @@ after('deploy:failed', 'cimonitor:notify:failure');
     ];
   });
   ```
-
 Various cimonitor statusses are set, in case you want to change these yourselves. See the [CIMonitor documentation](https://cimonitor.readthedocs.io/en/latest/) for the usages of different states.
-
 ## Usage
-
 If you want to notify only about beginning of deployment add this line only:
-
 ```php
 before('deploy', 'cimonitor:notify');
 ```
-
 If you want to notify about successful end of deployment add this too:
-
 ```php
 after('deploy:success', 'cimonitor:notify:success');
 ```
-
 If you want to notify about failed deployment add this too:
-
 ```php
 after('deploy:failed', 'cimonitor:notify:failure');
 ```
 
 
-* Config
-  * [`cimonitor_title`](#cimonitor_title)
-  * [`cimonitor_user`](#cimonitor_user)
-  * [`cimonitor_status_info`](#cimonitor_status_info)
-  * [`cimonitor_status_warning`](#cimonitor_status_warning)
-  * [`cimonitor_status_error`](#cimonitor_status_error)
-  * [`cimonitor_status_success`](#cimonitor_status_success)
-  * [`cimonitor_job_state_info`](#cimonitor_job_state_info)
-  * [`cimonitor_job_state_pending`](#cimonitor_job_state_pending)
-  * [`cimonitor_job_state_running`](#cimonitor_job_state_running)
-  * [`cimonitor_job_state_warning`](#cimonitor_job_state_warning)
-  * [`cimonitor_job_state_error`](#cimonitor_job_state_error)
-  * [`cimonitor_job_state_success`](#cimonitor_job_state_success)
-* Tasks
-  * [`cimonitor:notify`](#cimonitornotify) — Notifying CIMonitor
-  * [`cimonitor:notify:success`](#cimonitornotifysuccess) — Notifying CIMonitor about deploy finish
-  * [`cimonitor:notify:failure`](#cimonitornotifyfailure) — Notifying CIMonitor about deploy failure
-
-## Config
+## Configuration
 ### cimonitor_title
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor_title%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L64)
 
 Title of project based on git repo
 
-### cimonitor_user
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor_user%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+```php title="Default value"
+$repo = get('repository');
+$pattern = '/\w+\/\w+/';
+return preg_match($pattern, $repo, $titles) ? $titles[0] : $repo;
+```
 
+
+### cimonitor_user
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L69)
+
+
+
+```php title="Default value"
+return [
+'name' => runLocally('git config --get user.name'),
+'email' => runLocally('git config --get user.email'),
+];
+```
 
 
 ### cimonitor_status_info
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor_status_info%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L77)
 
 CI monitor status states and job states
 
-### cimonitor_status_warning
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor_status_warning%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+```php title="Default value"
+'info'
+```
 
+
+### cimonitor_status_warning
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L78)
+
+
+
+```php title="Default value"
+'warning'
+```
 
 
 ### cimonitor_status_error
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor_status_error%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L79)
 
+
+
+```php title="Default value"
+'error'
+```
 
 
 ### cimonitor_status_success
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor_status_success%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L80)
 
+
+
+```php title="Default value"
+'success'
+```
 
 
 ### cimonitor_job_state_info
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor_job_state_info%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L81)
 
+
+
+```php title="Default value"
+get('cimonitor_status_info')
+```
 
 
 ### cimonitor_job_state_pending
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor_job_state_pending%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L82)
 
+
+
+```php title="Default value"
+'pending'
+```
 
 
 ### cimonitor_job_state_running
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor_job_state_running%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L83)
 
+
+
+```php title="Default value"
+'running'
+```
 
 
 ### cimonitor_job_state_warning
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor_job_state_warning%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L84)
 
+
+
+```php title="Default value"
+get('cimonitor_status_warning')
+```
 
 
 ### cimonitor_job_state_error
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor_job_state_error%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L85)
 
+
+
+```php title="Default value"
+get('cimonitor_status_error')
+```
 
 
 ### cimonitor_job_state_success
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor_job_state_success%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L86)
 
+
+
+```php title="Default value"
+get('cimonitor_status_success')
+```
 
 
 
 ## Tasks
-### cimonitor:notify
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor%3Anotify%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+
+### cimonitor\:notify {#cimonitor-notify}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L89)
+
+Notifies CIMonitor.
 
 
 
-### cimonitor:notify:success
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor%3Anotify%3Asuccess%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+
+### cimonitor\:notify\:success {#cimonitor-notify-success}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L115)
+
+Notifies CIMonitor about deploy finish.
 
 
 
-### cimonitor:notify:failure
-[Source](https://github.com/deployphp/deployer/search?q=%22cimonitor%3Anotify%3Afailure%22+in%3Afile+language%3Aphp+path%3Acontrib+filename%3Acimonitor.php)
+
+### cimonitor\:notify\:failure {#cimonitor-notify-failure}
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/cimonitor.php#L143)
+
+Notifies CIMonitor about deploy failure.
+
 
 
 

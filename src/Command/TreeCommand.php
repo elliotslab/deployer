@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 /* (c) Anton Medvedev <anton@medv.io>
  *
  * For the full copyright and license information, please view the LICENSE
@@ -10,17 +13,33 @@ namespace Deployer\Command;
 use Deployer\Deployer;
 use Deployer\Task\GroupTask;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Completion\CompletionInput;
+use Symfony\Component\Console\Completion\CompletionSuggestions;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface as Input;
 use Symfony\Component\Console\Output\OutputInterface as Output;
 
 class TreeCommand extends Command
 {
+    /**
+     * @var Output
+     */
     protected $output;
-    private $tasks;
+    /**
+     * @var Deployer
+     */
     private $deployer;
+    /**
+     * @var array
+     */
     private $tree;
+    /**
+     * @var int
+     */
     private $depth = 0;
+    /**
+     * @var array
+     */
     private $openGroupDepths = [];
 
     public function __construct(Deployer $deployer)
@@ -36,7 +55,7 @@ class TreeCommand extends Command
         $this->addArgument(
             'task',
             InputArgument::REQUIRED,
-            'Task to display the tree for'
+            'Task to display the tree for',
         );
     }
 
@@ -53,13 +72,20 @@ class TreeCommand extends Command
 
     private function buildTree(string $taskName)
     {
-        $this->tasks = Deployer::get()->tasks;
         $this->createTreeFromTaskName($taskName, '', true);
     }
 
     private function createTreeFromTaskName(string $taskName, string $postfix = '', bool $isLast = false)
     {
-        $task = $this->tasks->get($taskName);
+        $task = $this->deployer->tasks->get($taskName);
+
+        if (!$task->isEnabled()) {
+            if (empty($postfix)) {
+                $postfix = '  // disabled';
+            } else {
+                $postfix .= '; disabled';
+            }
+        }
 
         if ($task->getBefore()) {
             $beforePostfix = sprintf("  // before %s", $task->getName());
@@ -110,7 +136,7 @@ class TreeCommand extends Command
             'taskName' => $taskName,
             'depth' => $this->depth,
             'isLast' => $isLast,
-            'openDepths' => $this->openGroupDepths
+            'openDepths' => $this->openGroupDepths,
         ];
     }
 
@@ -138,9 +164,17 @@ class TreeCommand extends Command
                 }
             }
 
-            $prefix .=  $startSymbol . '──';
+            $prefix .= $startSymbol . '──';
 
             $this->output->writeln(sprintf('%s %s', $prefix, $treeItem['taskName']));
+        }
+    }
+
+    public function complete(CompletionInput $input, CompletionSuggestions $suggestions): void
+    {
+        parent::complete($input, $suggestions);
+        if ($input->mustSuggestArgumentValuesFor('task')) {
+            $suggestions->suggestValues(array_keys($this->deployer->tasks->all()));
         }
     }
 }

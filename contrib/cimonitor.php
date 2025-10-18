@@ -1,16 +1,9 @@
 <?php
 /*
-# CIMonitor recipe
-
 Monitor your deployments on [CIMonitor](https://github.com/CIMonitor/CIMonitor).
 
 ![CIMonitorGif](https://www.steefmin.xyz/deployer-example.gif)
 
-Require cimonitor recipe in your `deploy.php` file:
-
-```php
-require 'contrib/cimonitor.php';
-```
 
 Add tasks on deploy:
 
@@ -62,6 +55,7 @@ If you want to notify about failed deployment add this too:
 after('deploy:failed', 'cimonitor:notify:failure');
 ```
  */
+
 namespace Deployer;
 
 use Deployer\Utility\Httpie;
@@ -74,8 +68,8 @@ set('cimonitor_title', function () {
 });
 set('cimonitor_user', function () {
     return [
-      'name' => runLocally('git config --get user.name'),
-      'email' => runLocally('git config --get user.email'),
+        'name' => runLocally('git config --get user.name'),
+        'email' => runLocally('git config --get user.email'),
     ];
 });
 
@@ -91,7 +85,7 @@ set('cimonitor_job_state_warning', get('cimonitor_status_warning'));
 set('cimonitor_job_state_error', get('cimonitor_status_error'));
 set('cimonitor_job_state_success', get('cimonitor_status_success'));
 
-desc('Notifying CIMonitor');
+desc('Notifies CIMonitor');
 task('cimonitor:notify', function () {
     if (!get('cimonitor_webhook', false)) {
         return;
@@ -108,23 +102,22 @@ task('cimonitor:notify', function () {
                 'name' => 'Deploying...',
                 'stage' => '',
                 'state' => get('cimonitor_job_state_running'),
-            ]
+            ],
         ],
     ];
 
-    Httpie::post(get('cimonitor_webhook'))->body($body)->send();
+    Httpie::post(get('cimonitor_webhook'))->jsonBody($body)->send();
 })
     ->once()
-    ->shallow()
     ->hidden();
 
-desc('Notifying CIMonitor about deploy finish');
+desc('Notifies CIMonitor about deploy finish');
 task('cimonitor:notify:success', function () {
     if (!get('cimonitor_webhook', false)) {
         return;
     }
 
-    $depstage = 'Deployed to '.get('stage', '');
+    $depstage = 'Deployed to ' . get('stage', '');
 
     $body = [
         'state' => get('cimonitor_status_success'),
@@ -137,17 +130,16 @@ task('cimonitor:notify:success', function () {
                 'name' => 'Deploy',
                 'stage' => $depstage,
                 'state' => get('cimonitor_job_state_success'),
-            ]
+            ],
         ],
     ];
 
-    Httpie::post(get('cimonitor_webhook'))->body($body)->send();
+    Httpie::post(get('cimonitor_webhook'))->jsonBody($body)->send();
 })
     ->once()
-    ->shallow()
     ->hidden();
 
-desc('Notifying CIMonitor about deploy failure');
+desc('Notifies CIMonitor about deploy failure');
 task('cimonitor:notify:failure', function () {
     if (!get('cimonitor_webhook', false)) {
         return;
@@ -164,13 +156,11 @@ task('cimonitor:notify:failure', function () {
                 'name' => 'Deploy',
                 'stage' => '',
                 'state' => get('cimonitor_job_state_error'),
-            ]
+            ],
         ],
     ];
 
-    Httpie::post(get('cimonitor_webhook'))->body($body)->send();
+    Httpie::post(get('cimonitor_webhook'))->jsonBody($body)->send();
 })
     ->once()
-    ->shallow()
     ->hidden();
-

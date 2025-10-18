@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Deployer\Component\PharUpdate\Exception;
 
 /**
@@ -6,6 +9,4 @@ namespace Deployer\Component\PharUpdate\Exception;
  *
  * @author Kevin Herrera <kevin@herrera.io>
  */
-class LogicException extends Exception
-{
-}
+class LogicException extends Exception {}
